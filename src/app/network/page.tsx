@@ -1,22 +1,68 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Users, ShieldCheck, Sparkles, HelpCircle, Briefcase } from "lucide-react";
+import { Search, Users, ShieldCheck, Sparkles, HelpCircle, Briefcase, RefreshCw, Key } from "lucide-react";
 import { useSocial } from "@/components/providers/social-context";
-import { MOCK_USERS, calculateMatch, UserProfile } from "@/lib/utils/matching";
+import { calculateMatch, UserProfile } from "@/lib/utils/matching";
 import { ConnectionCard } from "@/components/network/connection-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { db } from "@/lib/firebase/config";
+import { collection, getDocs } from "firebase/firestore";
 
 export default function NetworkPage() {
-  const { currentUser, openDirectChat } = useSocial();
+  const { currentUser, openDirectChat, isAuthenticated, setAuthModalOpen } = useSocial();
   const [searchTerm, setSearchTerm] = useState("");
   const [onlyReferrers, setOnlyReferrers] = useState(false);
+  
+  // Real registered users list
+  const [registeredUsers, setRegisteredUsers] = useState<UserProfile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Compute matches for all mock users compared to current user
+  useEffect(() => {
+    async function fetchRegisteredUsers() {
+      setIsLoading(true);
+      try {
+        if (db) {
+          const querySnapshot = await getDocs(collection(db, "users"));
+          const usersList: UserProfile[] = [];
+          
+          querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            // Do not show the current user in the network directory to keep it focused on finding others
+            if (data.id !== currentUser?.id && data.name) {
+              usersList.push({
+                id: data.id,
+                name: data.name,
+                github: data.github || "",
+                role: data.role || "Fullstack",
+                skills: data.skills || [],
+                style: data.style || "Builder",
+                company: data.company || "",
+                canRefer: data.canRefer || false,
+                avatar: data.avatar || data.name.charAt(0)
+              });
+            }
+          });
+          
+          setRegisteredUsers(usersList);
+        } else {
+          // Fallback if Firebase is not connected (local development/guest mode)
+          setRegisteredUsers([]);
+        }
+      } catch (err) {
+        console.error("Error loading network directory:", err);
+        setRegisteredUsers([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchRegisteredUsers();
+  }, [currentUser]);
+
+  // Compute matches for all registered users compared to current user
   const matches = useMemo(() => {
-    // Current user profile mapping
     const curProfile: UserProfile = {
       name: currentUser?.name || "Guest Developer",
       github: currentUser?.github || "devmatch_guest",
@@ -25,11 +71,11 @@ export default function NetworkPage() {
       style: (currentUser?.style || "Builder") as any
     };
 
-    return MOCK_USERS.map(user => {
+    return registeredUsers.map(user => {
       const matchResult = calculateMatch(curProfile, user);
       return matchResult;
     });
-  }, [currentUser]);
+  }, [currentUser, registeredUsers]);
 
   // Filter connections by search term and referrer toggles
   const filteredMatches = useMemo(() => {
@@ -67,25 +113,25 @@ export default function NetworkPage() {
             Professional Network <Users className="w-5 h-5 text-primary" />
           </h1>
           <p className="text-xs text-stone-500 font-semibold mt-1">
-            Connect with referrers and professionals at top engineering organizations
+            Connect and chat with verified professionals registered on the Job Dhundo! platform
           </p>
         </div>
 
         {/* Dashboard Bar: Searches, Filters, Quick Companies */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
           {/* Search Inputs */}
-          <div className="lg:col-span-3 bg-white border border-black/5 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row items-stretch md:items-center gap-4">
+          <div className="lg:col-span-3 bg-white border border-stone-200 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row items-stretch md:items-center gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-stone-400" />
               <Input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Who can refer me to Google? or search skills..."
-                className="pl-10 h-12 bg-stone-50 border-stone-200 text-xs rounded-xl"
+                placeholder="Search by company, role, or skills..."
+                className="pl-10 h-12 bg-stone-50 border-stone-205 text-xs rounded-xl"
               />
             </div>
 
-            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-black uppercase tracking-wider text-stone-700 shrink-0 px-2 py-3 border border-transparent hover:bg-stone-50 rounded-xl transition-all">
+            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-black uppercase tracking-wider text-stone-700 shrink-0 px-2 py-3 border border-transparent hover:bg-stone-55 rounded-xl transition-all">
               <input
                 type="checkbox"
                 checked={onlyReferrers}
@@ -97,17 +143,17 @@ export default function NetworkPage() {
           </div>
 
           {/* Quick company links */}
-          <div className="bg-white border border-black/5 rounded-3xl p-6 shadow-sm flex flex-col justify-center space-y-2">
-            <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">Quick Referrals</span>
+          <div className="bg-white border border-stone-200 rounded-3xl p-6 shadow-sm flex flex-col justify-center space-y-2">
+            <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">Target Employers</span>
             <div className="flex flex-wrap gap-1.5">
-              {["Google", "Meta", "Vercel", "Netflix", "Microsoft"].map(company => (
+              {["Google", "Meta", "TCS", "Infosys", "Wipro"].map(company => (
                 <button
                   key={company}
                   onClick={() => handleQuickSearch(company)}
                   className={`text-[10px] font-bold py-1 px-3 rounded-full border transition-all ${
                     searchTerm === company
                       ? "bg-primary text-white border-primary"
-                      : "bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-800 hover:border-primary/40 text-stone-600 dark:text-stone-300"
+                      : "bg-stone-50 border-stone-200 hover:border-primary/45 text-stone-650"
                   }`}
                 >
                   {company}
@@ -117,35 +163,41 @@ export default function NetworkPage() {
           </div>
         </div>
 
-        {/* Connections Grid */}
-        {filteredMatches.length > 0 ? (
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="p-16 text-center bg-white border border-stone-200 rounded-3xl space-y-3">
+            <RefreshCw className="w-8 h-8 animate-spin mx-auto text-primary" />
+            <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">Querying builder directory...</p>
+          </div>
+        ) : filteredMatches.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredMatches.map((match, idx) => (
+            {filteredMatches.map((match) => (
               <ConnectionCard
-                key={match.user.id || idx}
+                key={match.user.id}
                 match={match}
                 onChat={handleChat}
               />
             ))}
           </div>
         ) : (
-          <div className="p-16 text-center bg-white border border-black/5 rounded-3xl space-y-4">
-            <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center mx-auto text-stone-400">
-              <Users className="w-6 h-6" />
+          <div className="p-16 text-center bg-white border border-stone-200 rounded-3xl space-y-5">
+            <div className="w-12 h-12 rounded-full bg-stone-50 border border-stone-200 flex items-center justify-center mx-auto text-stone-400">
+              <Users className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold text-stone-900">No connections match your filters</h3>
-            <p className="text-xs text-stone-500 font-medium max-w-sm mx-auto">
-              Try searching for a different company name, or uncheck the "Only Referrers" box to see more candidate options.
-            </p>
-            <Button
-              onClick={() => {
-                setSearchTerm("");
-                setOnlyReferrers(false);
-              }}
-              className="bg-primary text-white font-bold text-xs uppercase py-2 px-6 rounded-xl shadow-md"
-            >
-              Reset Filters
-            </Button>
+            <div className="space-y-1.5">
+              <h3 className="text-sm font-black text-stone-900 uppercase tracking-wide">No Connections Registered Yet</h3>
+              <p className="text-xs text-stone-500 font-semibold max-w-sm mx-auto leading-relaxed">
+                Connect your account to register your professional details, skills, and target company in Job Dhundo!'s network directory.
+              </p>
+            </div>
+            {!isAuthenticated && (
+              <Button
+                onClick={() => setAuthModalOpen(true)}
+                className="bg-primary text-white font-black uppercase text-[10px] tracking-widest py-3 px-8 rounded-xl shadow-lg shadow-primary/10 flex items-center gap-1.5 mx-auto cursor-pointer"
+              >
+                <Key className="w-4 h-4" /> Sign In to Connect
+              </Button>
+            )}
           </div>
         )}
 
