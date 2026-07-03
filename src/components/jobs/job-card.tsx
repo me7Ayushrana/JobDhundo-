@@ -221,7 +221,7 @@ export function JobCard({ job, userSkills = [], onViewDetails, onSave, isSaved =
             size="sm"
             onClick={(e) => {
               e.stopPropagation();
-              window.open(`${job.applyUrl}?ref=devmatch`, "_blank");
+              onViewDetails(job);
             }}
             className="text-[10px] font-black uppercase tracking-widest py-1.5 px-3 rounded-xl bg-primary text-white hover:bg-primary/90 flex items-center gap-1 shadow-md shadow-primary/10 active:scale-95 transition-transform"
           >

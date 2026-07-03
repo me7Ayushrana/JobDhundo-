@@ -16,7 +16,7 @@ export interface UnifiedJob {
   skills: string[];              // Tech stack: ["React", "Node.js", "AWS"]
   postedDate: string;            // ISO 8601
   applyUrl: string;              // Original application link
-  source: "adzuna" | "loopcv" | "jsearch" | "cached";
+  source: "adzuna" | "loopcv" | "jsearch" | "internshala" | "naukri" | "cached";
   sourceAttribution: string;     // Tiny text: "via Adzuna"
   matchScore?: number;           // 0-100, computed later
 }
