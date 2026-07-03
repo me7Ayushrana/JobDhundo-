@@ -6,7 +6,6 @@ import { X, MapPin, Briefcase, Calendar, DollarSign, ExternalLink, Bookmark, Spa
 import { UnifiedJob } from "@/lib/jobs/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ApplicationWizard } from "@/components/jobs/application-wizard";
 
 interface JobDetailsModalProps {
   job: UnifiedJob | null;
@@ -18,7 +17,6 @@ interface JobDetailsModalProps {
 }
 
 export function JobDetailsModal({ job, isOpen, onClose, userSkills = [], isSaved = false, onSave }: JobDetailsModalProps) {
-  const [isApplyWizardOpen, setIsApplyWizardOpen] = useState(false);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -225,7 +223,7 @@ export function JobDetailsModal({ job, isOpen, onClose, userSkills = [], isSaved
                 </Button>
 
                 <Button
-                  onClick={() => setIsApplyWizardOpen(true)}
+                  onClick={() => window.open(job.applyUrl, "_blank")}
                   className="flex items-center gap-1.5 font-black uppercase tracking-widest py-5 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/15 transition-all duration-300"
                 >
                   Quick Apply <ExternalLink className="w-4 h-4" />
@@ -235,13 +233,6 @@ export function JobDetailsModal({ job, isOpen, onClose, userSkills = [], isSaved
           </div>
         )}
       </AnimatePresence>
-
-      <ApplicationWizard
-        isOpen={isApplyWizardOpen}
-        onClose={() => setIsApplyWizardOpen(false)}
-        job={job}
-        onSuccess={onClose}
-      />
     </>
   );
 }

@@ -44,7 +44,7 @@ export function Navbar() {
             >
                 <nav className="glass px-8 py-3.5 rounded-full flex items-center justify-between w-full max-w-7xl animate-in fade-in slide-in-from-top-4 duration-1000 border-black/5 relative pointer-events-auto shadow-2xl">
                     <Link href="/" className="relative z-10">
-                        <span className="text-2xl font-black tracking-tighter text-stone-900 uppercase italic">DevMatch</span>
+                        <span className="text-2xl font-black tracking-tighter text-stone-900 uppercase italic">Job Dhundo!</span>
                     </Link>
 
                     <div className="hidden md:flex items-center gap-7 font-bold text-[11px] uppercase tracking-[0.15em] text-stone-700 relative z-10">

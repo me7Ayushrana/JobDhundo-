@@ -66,8 +66,8 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-[1.0] text-stone-900"
             >
-              Naukri & Internshala.<br />
-              <span className="text-primary">All In One Portal.</span>
+              Job Dhundo!<br />
+              <span className="text-primary">Find Your Next Move.</span>
             </motion.h1>
 
             {/* Subtitle */}
@@ -77,7 +77,7 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-stone-500 text-sm md:text-base leading-relaxed font-semibold max-w-xl"
             >
-              Access internships from Internshala and full-time software engineering roles from Naukri.com. Upload your resume, parse skills automatically, and submit screenings directly.
+              Access internships, full-time engineering roles, and freelance gigs consolidated live from LinkedIn, Indeed, Naukri, Internshala, and 20+ other platforms. Upload your resume to map matching opportunities instantly.
             </motion.p>
 
             {/* Clean Professional Search Box */}
@@ -179,7 +179,7 @@ export default function Home() {
               <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Active Openings</span>
             </div>
             <p className="text-[11px] text-stone-500 font-medium">
-              Consolidated, cleaned, and synced from Naukri, Internshala, Adzuna, and LoopCV pipelines.
+              Consolidated, cleaned, and synced live from LinkedIn, Indeed, Naukri, Internshala, and 20+ other pipelines.
             </p>
           </div>
 
@@ -190,9 +190,9 @@ export default function Home() {
             </span>
             <div className="flex flex-col gap-1.5 w-full">
               {[
-                { term: "Web Development Internship (Internshala)", link: "/jobs?q=Web Development" },
-                { term: "Senior Frontend Engineer (Naukri)", link: "/jobs?q=Frontend" },
-                { term: "DevOps Infrastructure (Naukri)", link: "/jobs?q=DevOps" }
+                { term: "Web Development Internship", link: "/jobs?q=Web Development" },
+                { term: "Senior Frontend Engineer", link: "/jobs?q=Frontend" },
+                { term: "DevOps Infrastructure", link: "/jobs?q=DevOps" }
               ].map((item, idx) => (
                 <Link
                   key={idx}
@@ -214,7 +214,7 @@ export default function Home() {
         <div className="container mx-auto px-6 max-w-7xl">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { icon: Briefcase, title: "Naukri & Internshala Feeds", desc: "View software engineering vacancies and internships unified into a single schema. Access details, eligibility, and descriptions on one dashboard." },
+              { icon: Briefcase, title: "Multi-Source Feeds", desc: "View software engineering vacancies, internships, and gigs unified into a single schema. Access details, eligibility, and descriptions on one dashboard." },
               { icon: Code, title: "Direct Screening Submittals", desc: "Apply directly by uploading your resume, parsing skills, and filling out custom company screening forms inside the workspace." },
               { icon: ShieldCheck, title: "Skills Alignment Scorer", desc: "Upload your CV to automatically map keywords and experience. The matcher rates every opportunity based on your actual tech stack usage." }
             ].map((feature, i) => (

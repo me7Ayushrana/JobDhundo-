@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DevMatch Jobs | Unified Software Engineering Job Platform",
-  description: "Aggregated software engineering jobs, real-time networking, and AI-powered career coach.",
+  title: "Job Dhundo! | India's Premium Job Portal",
+  description: "Find internships, full-time engineering roles, and gigs consolidated live from LinkedIn, Indeed, Naukri, Internshala, and 20+ other platforms.",
 };
 
 export default function RootLayout({

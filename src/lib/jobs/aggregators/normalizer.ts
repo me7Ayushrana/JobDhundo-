@@ -65,6 +65,37 @@ export function normalizeJobType(typeStr: string): UnifiedJob["jobType"] {
   return "full-time";
 }
 
+export function detectOriginalSource(url: string, publisher?: string): string {
+  if (publisher && !["adzuna", "loopcv", "jsearch", "cached"].includes(publisher.toLowerCase())) {
+    return publisher;
+  }
+  if (!url) return "Job Board";
+  try {
+    const domain = new URL(url).hostname.replace("www.", "");
+    if (domain.includes("linkedin")) return "LinkedIn";
+    if (domain.includes("indeed")) return "Indeed";
+    if (domain.includes("glassdoor")) return "Glassdoor";
+    if (domain.includes("naukri")) return "Naukri.com";
+    if (domain.includes("internshala")) return "Internshala";
+    if (domain.includes("unstop")) return "Unstop";
+    if (domain.includes("wellfound") || domain.includes("angel.co")) return "Wellfound";
+    if (domain.includes("upwork")) return "Upwork";
+    if (domain.includes("fiverr")) return "Fiverr";
+    if (domain.includes("foundit") || domain.includes("monster")) return "Foundit";
+    if (domain.includes("shine")) return "Shine.com";
+    if (domain.includes("freshersworld")) return "Freshersworld";
+    if (domain.includes("apna")) return "Apna";
+    if (domain.includes("workindia")) return "WorkIndia";
+    if (domain.includes("mygov")) return "MyGov";
+    if (domain.includes("aicte")) return "AICTE Portal";
+    
+    const parts = domain.split('.');
+    return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+  } catch (_) {
+    return publisher || "Job Board";
+  }
+}
+
 export function normalizeJobs(rawJobs: any[], source: UnifiedJob["source"]): UnifiedJob[] {
   if (!rawJobs || !Array.isArray(rawJobs)) return [];
 
@@ -197,7 +228,7 @@ export function normalizeJobs(rawJobs: any[], source: UnifiedJob["source"]): Uni
       postedDate,
       applyUrl,
       source,
-      sourceAttribution: `via ${source.toUpperCase()}`
+      sourceAttribution: `via ${detectOriginalSource(applyUrl, item.job_publisher || item.publisher || item.source_name || item.job_source || (source === "cached" ? "Curated" : source))}`
     };
   });
 }
