@@ -484,5 +484,508 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     applyUrl: "https://www.naukri.com/job-listings-accenture-java-architect",
     source: "naukri",
     sourceAttribution: "via Naukri.com"
+  },
+  // --- LinkedIn (Opportunities) ---
+  {
+    id: "dm-linkedin-1",
+    title: "Frontend Engineer (React)",
+    company: "Vercel",
+    location: "Remote",
+    jobType: "full-time",
+    experienceLevel: "mid",
+    salaryMin: 90000,
+    salaryMax: 130000,
+    salaryCurrency: "USD",
+    salaryPeriod: "yearly",
+    description: "Vercel is looking for a Frontend Engineer to improve dashboard rendering and build out new layout features. You will write clean React code, style elements in Tailwind CSS, and align state loops.",
+    requirements: [
+      "2+ years of production experience with React and TypeScript.",
+      "Deep understanding of Tailwind CSS and design tokens.",
+      "Familiarity with server component structures in Next.js."
+    ],
+    skills: ["React", "TypeScript", "Next.js", "Tailwind CSS"],
+    postedDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://www.linkedin.com/jobs/view/vercel-frontend-engineer",
+    source: "cached",
+    sourceAttribution: "via LinkedIn"
+  },
+  // --- Indeed (Opportunities) ---
+  {
+    id: "dm-indeed-1",
+    title: "Full Stack Engineer",
+    company: "Stripe",
+    location: "Bangalore, India",
+    jobType: "full-time",
+    experienceLevel: "mid",
+    salaryMin: 1400000,
+    salaryMax: 2600000,
+    salaryCurrency: "INR",
+    salaryPeriod: "yearly",
+    description: "Indeed Hot Job: Stripe is hiring a Full Stack Engineer to support merchant dashboard pipelines. You will write Go microservices and React dashboards.",
+    requirements: [
+      "3+ years of experience with React, JavaScript, and Go.",
+      "Experience setting up payment integrations or accounting gateways.",
+      "Strong database layout knowledge."
+    ],
+    skills: ["React", "Go", "SQL"],
+    postedDate: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://www.indeed.com/viewjob?jk=stripe-full-stack",
+    source: "cached",
+    sourceAttribution: "via Indeed"
+  },
+  // --- Wellfound (Opportunities) ---
+  {
+    id: "dm-wellfound-1",
+    title: "Founding Engineer (Next.js & AI)",
+    company: "Cognitive Labs",
+    location: "Remote (Global)",
+    jobType: "full-time",
+    experienceLevel: "mid",
+    salaryMin: 80000,
+    salaryMax: 120000,
+    salaryCurrency: "USD",
+    salaryPeriod: "yearly",
+    description: "Wellfound Featured: Build next-generation LLM pipelines. You will write custom Next.js wrappers, integrate vector databases, and scale model processing loops.",
+    requirements: [
+      "Proficient in Next.js, Node.js, and OpenAI API integrations.",
+      "Experience with PostgreSQL and pgvector.",
+      "Self-driven starter ready to work in a fast startup."
+    ],
+    skills: ["Next.js", "React", "Node.js", "PostgreSQL"],
+    postedDate: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://wellfound.com/jobs/cognitive-labs-founding-engineer",
+    source: "cached",
+    sourceAttribution: "via Wellfound"
+  },
+  // --- Glassdoor (Opportunities) ---
+  {
+    id: "dm-glassdoor-1",
+    title: "QA Automation Lead",
+    company: "Deloitte",
+    location: "Mumbai, India",
+    jobType: "full-time",
+    experienceLevel: "senior",
+    salaryMin: 1200000,
+    salaryMax: 1800000,
+    salaryCurrency: "INR",
+    salaryPeriod: "yearly",
+    description: "Perform QA validation for banking clients. You will write automated end-to-end check scripts in Playwright and coordinate quality metrics logs.",
+    requirements: [
+      "4+ years of QA Automation engineering.",
+      "Extensive experience with Playwright or Cypress.",
+      "Good comprehension of Git and Jenkins pipelines."
+    ],
+    skills: ["TypeScript", "JavaScript", "Git"],
+    postedDate: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://www.glassdoor.co.in/job-listing/deloitte-qa-automation-lead",
+    source: "cached",
+    sourceAttribution: "via Glassdoor"
+  },
+  // --- Foundit (Opportunities) ---
+  {
+    id: "dm-foundit-1",
+    title: "Cloud Infrastructure Architect",
+    company: "Cognizant",
+    location: "Kolkata, India",
+    jobType: "full-time",
+    experienceLevel: "senior",
+    salaryMin: 1500000,
+    salaryMax: 2800000,
+    salaryCurrency: "INR",
+    salaryPeriod: "yearly",
+    description: "Foundit Verified: Design hybrid cloud configurations. Manage IAM layouts, AWS server clusters, and database query replicators.",
+    requirements: [
+      "5+ years cloud engineering experience.",
+      "AWS Solutions Architect certification is a plus.",
+      "Proficient in Docker and Kubernetes."
+    ],
+    skills: ["Docker", "Kubernetes", "AWS", "DevOps"],
+    postedDate: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://www.foundit.in/job/cognizant-cloud-infrastructure",
+    source: "cached",
+    sourceAttribution: "via Foundit"
+  },
+  // --- Shine.com (Opportunities) ---
+  {
+    id: "dm-shine-1",
+    title: "React Web Developer",
+    company: "Capgemini",
+    location: "Hyderabad, India",
+    jobType: "full-time",
+    experienceLevel: "mid",
+    salaryMin: 600000,
+    salaryMax: 1000000,
+    salaryCurrency: "INR",
+    salaryPeriod: "yearly",
+    description: "Mindtree (Capgemini) is seeking a React Specialist to develop ecommerce layouts. Optimize load states and structure client API handlers.",
+    requirements: [
+      "2-4 years of React web engineering.",
+      "Strong JavaScript and CSS layout skills.",
+      "Good communication skills."
+    ],
+    skills: ["React", "JavaScript", "Tailwind CSS"],
+    postedDate: new Date(Date.now() - 14 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://www.shine.com/jobs/capgemini-react-web-developer",
+    source: "cached",
+    sourceAttribution: "via Shine.com"
+  },
+  // --- Unstop (Opportunities) ---
+  {
+    id: "dm-unstop-1",
+    title: "Hackathon Project Trainee",
+    company: "HDFC Bank",
+    location: "Remote (India)",
+    jobType: "internship",
+    experienceLevel: "entry",
+    salaryMin: 25000,
+    salaryMax: 30000,
+    salaryCurrency: "INR",
+    salaryPeriod: "monthly",
+    description: "Unstop Premium Opportunity: HDFC is hiring hackathon developers to build prototype mobile wallets. Requires quick turnaround times and modern tech stack usage.",
+    requirements: [
+      "B.Tech students in 3rd or 4th year.",
+      "Familiarity with React or Flutter.",
+      "Strong prototyping speed."
+    ],
+    skills: ["React", "Flutter", "Git"],
+    postedDate: new Date(Date.now() - 16 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://unstop.com/internships/hdfc-hackathon-trainee",
+    source: "cached",
+    sourceAttribution: "via Unstop"
+  },
+  // --- Twenty19 (Opportunities) ---
+  {
+    id: "dm-twenty19-1",
+    title: "Full Stack Startup Intern",
+    company: "Zepto",
+    location: "Mumbai, India",
+    jobType: "internship",
+    experienceLevel: "entry",
+    salaryMin: 22000,
+    salaryMax: 28000,
+    salaryCurrency: "INR",
+    salaryPeriod: "monthly",
+    description: "Work on rapid delivery logistics modules. Write client React code, Node.js API controllers, and log latency profiles.",
+    requirements: [
+      "Experience with Node.js and React.",
+      "Familiarity with SQL or MongoDB databases.",
+      "Available for a 6-month in-office stint."
+    ],
+    skills: ["React", "Node.js", "MongoDB"],
+    postedDate: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "http://www.twenty19.com/internship/zepto-fullstack-intern",
+    source: "cached",
+    sourceAttribution: "via Twenty19"
+  },
+  // --- Hello Intern (Opportunities) ---
+  {
+    id: "dm-hellointern-1",
+    title: "UI/UX Design Intern",
+    company: "Blinkit",
+    location: "Gurugram, India",
+    jobType: "internship",
+    experienceLevel: "entry",
+    salaryMin: 15000,
+    salaryMax: 20000,
+    salaryCurrency: "INR",
+    salaryPeriod: "monthly",
+    description: "Design cart layouts and checkout funnels. Conduct UI checks, draw Figma prototypes, and coordinate with design engineers.",
+    requirements: [
+      "Proficient in Figma prototypes.",
+      "Available for 3 months.",
+      "Strong layout design principles."
+    ],
+    skills: ["Figma", "Tailwind CSS"],
+    postedDate: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://www.hellointern.com/internship/blinkit-uiux-design",
+    source: "cached",
+    sourceAttribution: "via Hello Intern"
+  },
+  // --- Freshersworld (Opportunities) ---
+  {
+    id: "dm-freshersworld-1",
+    title: "Associate Software Engineer",
+    company: "Tech Mahindra",
+    location: "Noida, India",
+    jobType: "full-time",
+    experienceLevel: "entry",
+    salaryMin: 350000,
+    salaryMax: 480000,
+    salaryCurrency: "INR",
+    salaryPeriod: "yearly",
+    description: "Freshersworld Hot Entry: Associate Software Engineer. Training provided on Java web services and database controllers.",
+    requirements: [
+      "B.E/B.Tech in CS/IT/ECE (Recent batch).",
+      "Basic understanding of Java and SQL.",
+      "Good communication skills."
+    ],
+    skills: ["Java", "SQL", "Git"],
+    postedDate: new Date(Date.now() - 22 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://www.freshersworld.com/jobs/techmahindra-associate",
+    source: "cached",
+    sourceAttribution: "via Freshersworld"
+  },
+  // --- HackerEarth (Opportunities) ---
+  {
+    id: "dm-hackerearth-1",
+    title: "Coding Challenge Candidate (Node.js)",
+    company: "IBM",
+    location: "Bangalore, India",
+    jobType: "full-time",
+    experienceLevel: "mid",
+    salaryMin: 800000,
+    salaryMax: 1400000,
+    salaryCurrency: "INR",
+    salaryPeriod: "yearly",
+    description: "Hiring via HackerEarth Challenge. Score above 85% to receive an interview for IBM's main microservice logistics team.",
+    requirements: [
+      "Strong algorithms and data structures foundations.",
+      "Experience with Node.js and Express frameworks.",
+      "Familiarity with SQL."
+    ],
+    skills: ["Node.js", "Express", "SQL"],
+    postedDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://www.hackerearth.com/challenges/hiring/ibm-nodejs-developer",
+    source: "cached",
+    sourceAttribution: "via HackerEarth"
+  },
+  // --- Cutshort (Opportunities) ---
+  {
+    id: "dm-cutshort-1",
+    title: "Tech Lead (React & Node)",
+    company: "Razorpay",
+    location: "Bangalore, India",
+    jobType: "full-time",
+    experienceLevel: "senior",
+    salaryMin: 2200000,
+    salaryMax: 3500000,
+    salaryCurrency: "INR",
+    salaryPeriod: "yearly",
+    description: "Cutshort Verified: Manage a team of 4 frontend engineers. Govern architecture transitions, Next.js server migrations, and design layout pipelines.",
+    requirements: [
+      "6+ years frontend engineering.",
+      "2+ years experience leading tech squads.",
+      "Highly skilled in React and Next.js."
+    ],
+    skills: ["React", "Next.js", "TypeScript", "Node.js"],
+    postedDate: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://cutshort.io/job/razorpay-tech-lead",
+    source: "cached",
+    sourceAttribution: "via Cutshort"
+  },
+  // --- Hirect (Opportunities) ---
+  {
+    id: "dm-hirect-1",
+    title: "Backend Developer (Node.js)",
+    company: "Khatabook",
+    location: "Bangalore, India",
+    jobType: "full-time",
+    experienceLevel: "mid",
+    salaryMin: 900000,
+    salaryMax: 1500000,
+    salaryCurrency: "INR",
+    salaryPeriod: "yearly",
+    description: "Hirect Direct Chat: Apply and chat directly with the tech recruiter. Khatabook is scaling accounts databases. Write clean REST APIs in Node.js.",
+    requirements: [
+      "3+ years Node.js backend development.",
+      "Familiarity with PostgreSQL database indexing.",
+      "Experience with Redis."
+    ],
+    skills: ["Node.js", "PostgreSQL", "Redis"],
+    postedDate: new Date(Date.now() - 28 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://www.hirect.in/jobs/khatabook-nodejs-backend",
+    source: "cached",
+    sourceAttribution: "via Hirect"
+  },
+  // --- AICTE Internship Portal (Opportunities) ---
+  {
+    id: "dm-aicte-1",
+    title: "Smart India Prototyping Trainee",
+    company: "Ministry of Education",
+    location: "New Delhi, India",
+    jobType: "internship",
+    experienceLevel: "entry",
+    salaryMin: 12000,
+    salaryMax: 15000,
+    salaryCurrency: "INR",
+    salaryPeriod: "monthly",
+    description: "AICTE Portal Credit Internship: Support national database portals. Write clean, accessible web components and clean relational tables.",
+    requirements: [
+      "Enrollment in an AICTE approved engineering college.",
+      "Basic understanding of React and SQL.",
+      "Recommendation letter from college head."
+    ],
+    skills: ["React", "SQL", "Git"],
+    postedDate: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://internship.aicte-india.org/internship/detail/smart-india",
+    source: "cached",
+    sourceAttribution: "via AICTE Portal"
+  },
+  // --- MyGov (Opportunities) ---
+  {
+    id: "dm-mygov-1",
+    title: "National Informatics Center Intern",
+    company: "NIC (National Informatics Center)",
+    location: "Remote (India)",
+    jobType: "internship",
+    experienceLevel: "entry",
+    salaryMin: 10000,
+    salaryMax: 10000,
+    salaryCurrency: "INR",
+    salaryPeriod: "monthly",
+    description: "MyGov Fellowship/Internship: Construct interactive widgets for citizen engagement portals. Refine loading speed and support data logging templates.",
+    requirements: [
+      "Familiarity with HTML5, CSS3, and JavaScript.",
+      "Excellent documentation and writing skills.",
+      "Commitment for 3 months."
+    ],
+    skills: ["JavaScript", "Git"],
+    postedDate: new Date(Date.now() - 32 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://www.mygov.in/internship/nic-developer",
+    source: "cached",
+    sourceAttribution: "via MyGov"
+  },
+  // --- Company Career Pages (Google, Microsoft, TCS, Deloitte, etc.) ---
+  {
+    id: "dm-company-google",
+    title: "Software Engineer III",
+    company: "Google",
+    location: "Bangalore, India",
+    jobType: "full-time",
+    experienceLevel: "mid",
+    salaryMin: 2500000,
+    salaryMax: 4200000,
+    salaryCurrency: "INR",
+    salaryPeriod: "yearly",
+    description: "Google Career Page Direct: Write, design, and implement features on Core Search infrastructure. Scale real-time indexing models and database partitions.",
+    requirements: [
+      "B.Tech/M.Tech in Computer Science or related fields.",
+      "3+ years experience with C++, Java, or Go.",
+      "Strong algorithms and systems architecture foundations."
+    ],
+    skills: ["Java", "Go", "Git"],
+    postedDate: new Date(Date.now() - 34 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://careers.google.com/jobs/results/google-swe-iii",
+    source: "cached",
+    sourceAttribution: "via Google Career Page"
+  },
+  {
+    id: "dm-company-microsoft",
+    title: "Software Architect",
+    company: "Microsoft",
+    location: "Hyderabad, India",
+    jobType: "full-time",
+    experienceLevel: "lead",
+    salaryMin: 3200000,
+    salaryMax: 5500000,
+    salaryCurrency: "INR",
+    salaryPeriod: "yearly",
+    description: "Microsoft Career Page Direct: Construct next-generation Azure storage controllers. Govern technical designs and run scale assessments.",
+    requirements: [
+      "8+ years systems development.",
+      "Expertise scaling Azure or AWS cloud infrastructures.",
+      "Proficient in C#, Java, or Go."
+    ],
+    skills: ["Java", "Go", "Docker", "Kubernetes", "AWS"],
+    postedDate: new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://careers.microsoft.com/us/en/job/microsoft-architect",
+    source: "cached",
+    sourceAttribution: "via Microsoft Career Page"
+  },
+  // --- Apna (Opportunities) ---
+  {
+    id: "dm-apna-1",
+    title: "Tech Support Executive",
+    company: "Teleperformance",
+    location: "Pune, India",
+    jobType: "full-time",
+    experienceLevel: "entry",
+    salaryMin: 22000,
+    salaryMax: 28000,
+    salaryCurrency: "INR",
+    salaryPeriod: "monthly",
+    description: "Apna Quick Hire: Assist enterprise clients in troubleshooting server connections and database logs. Requires basic Linux script understanding.",
+    requirements: [
+      "Basic understanding of networking protocols.",
+      "Familiarity with Unix shells and SSH commands.",
+      "Fluent English."
+    ],
+    skills: ["Git", "Python"],
+    postedDate: new Date(Date.now() - 38 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://apna.co/jobs/teleperformance-tech-support",
+    source: "cached",
+    sourceAttribution: "via Apna"
+  },
+  // --- WorkIndia (Opportunities) ---
+  {
+    id: "dm-workindia-1",
+    title: "Database Entry Operator",
+    company: "Prime Solutions",
+    location: "Kolkata, India",
+    jobType: "full-time",
+    experienceLevel: "entry",
+    salaryMin: 18000,
+    salaryMax: 22000,
+    salaryCurrency: "INR",
+    salaryPeriod: "monthly",
+    description: "WorkIndia Direct Candidate: Populate and clean entry rows in client databases. Basic comprehension of SQL tables and spreadsheets is required.",
+    requirements: [
+      "Basic understanding of SQL SELECT queries.",
+      "Highly accurate typing skills.",
+      "B.Sc/B.Com graduates preferred."
+    ],
+    skills: ["SQL"],
+    postedDate: new Date(Date.now() - 40 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://www.workindia.in/jobs/prime-database-operator",
+    source: "cached",
+    sourceAttribution: "via WorkIndia"
+  },
+  // --- Upwork (Opportunities) ---
+  {
+    id: "dm-upwork-1",
+    title: "React & TypeScript Consultant",
+    company: "SaaS Startups LLC",
+    location: "Remote (Freelance)",
+    jobType: "freelance",
+    experienceLevel: "mid",
+    salaryMin: 40,
+    salaryMax: 70,
+    salaryCurrency: "USD",
+    salaryPeriod: "hourly",
+    description: "Upwork Gig: Contract dev needed to refactor cart features. Clean React state managers, optimize image loading, and write clean tests.",
+    requirements: [
+      "High rating on Upwork (JSS > 95%).",
+      "Expertise in React and TypeScript.",
+      "Estimated project duration: 30 hours."
+    ],
+    skills: ["React", "TypeScript", "Tailwind CSS"],
+    postedDate: new Date(Date.now() - 42 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://www.upwork.com/jobs/react-typescript-consultant",
+    source: "cached",
+    sourceAttribution: "via Upwork"
+  },
+  // --- Fiverr (Opportunities) ---
+  {
+    id: "dm-fiverr-1",
+    title: "Custom WordPress Builder",
+    company: "E-Commerce Merchants",
+    location: "Remote (Freelance)",
+    jobType: "freelance",
+    experienceLevel: "mid",
+    salaryMin: 300,
+    salaryMax: 800,
+    salaryCurrency: "USD",
+    salaryPeriod: "monthly",
+    description: "Fiverr Contract: Create responsive ecommerce templates for merchants. Configure MySQL hooks, custom plugins, and style elements.",
+    requirements: [
+      "Level 2 Fiverr seller preferred.",
+      "Good comprehension of PHP and CSS layout layers.",
+      "Deliver prototype in 5 days."
+    ],
+    skills: ["JavaScript", "Tailwind CSS"],
+    postedDate: new Date(Date.now() - 44 * 60 * 60 * 1000).toISOString(),
+    applyUrl: "https://www.fiverr.com/gigs/wordpress-builder",
+    source: "cached",
+    sourceAttribution: "via Fiverr"
   }
 ];

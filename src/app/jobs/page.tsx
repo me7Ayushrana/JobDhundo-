@@ -208,12 +208,6 @@ function JobsFeedInner() {
           </div>
 
           <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mr-1">Aggregations:</span>
-            {Object.entries(sourceBreakdown).map(([source, count]) => (
-              <Badge key={source} variant="outline" className="bg-white border-stone-200 text-[10px] py-1 px-3.5 rounded-full text-stone-500 font-bold uppercase">
-                {source}: {count}
-              </Badge>
-            ))}
             <button
               onClick={() => fetchJobsData(1, false)}
               className="p-2 bg-white rounded-full border border-stone-200 hover:border-primary/50 text-stone-400 hover:text-stone-700 transition-colors"

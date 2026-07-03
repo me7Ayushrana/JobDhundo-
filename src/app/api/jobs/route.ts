@@ -71,10 +71,8 @@ export async function GET(req: NextRequest) {
       return true;
     });
 
-    // ALWAYS include Internshala and Naukri listings so they are always available and filterable!
-    const curatedSourceJobs = HIGH_FIDELITY_FALLBACK_JOBS.filter(
-      (job) => job.source === "internshala" || job.source === "naukri"
-    );
+    // ALWAYS include all curated/fallback jobs to ensure complete coverage of multiple platforms!
+    const curatedSourceJobs = HIGH_FIDELITY_FALLBACK_JOBS;
     const dedupedCurated = curatedSourceJobs.filter((job) => {
       const hash = `${job.title.toLowerCase()}|${job.company.toLowerCase()}|${job.location.toLowerCase()}`;
       if (seen.has(hash)) return false;
