@@ -23,7 +23,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["React", "JavaScript", "Node.js", "Tailwind CSS"],
     postedDate: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://internshala.com/internship/detail/razorpay-web-development-internship",
+    applyUrl: "https://razorpay.com/jobs/",
     source: "internshala",
     sourceAttribution: "via Internshala"
   },
@@ -47,7 +47,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Figma", "Tailwind CSS", "Framer Motion"],
     postedDate: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://internshala.com/internship/detail/zomato-uiux-design-internship",
+    applyUrl: "https://www.zomato.com/careers",
     source: "internshala",
     sourceAttribution: "via Internshala"
   },
@@ -71,7 +71,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Flutter", "Dart", "Git"],
     postedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://internshala.com/internship/detail/paytm-flutter-developer",
+    applyUrl: "https://www.paytm.com/about-us/careers",
     source: "internshala",
     sourceAttribution: "via Internshala"
   },
@@ -95,7 +95,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Python", "Django", "PostgreSQL"],
     postedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://internshala.com/internship/detail/swiggy-python-django",
+    applyUrl: "https://careers.swiggy.com",
     source: "internshala",
     sourceAttribution: "via Internshala"
   },
@@ -119,7 +119,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Python", "SQL", "Pandas"],
     postedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://internshala.com/internship/detail/cred-data-analyst",
+    applyUrl: "https://cred.club/careers",
     source: "internshala",
     sourceAttribution: "via Internshala"
   },
@@ -143,7 +143,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Next.js", "React", "TypeScript", "Tailwind CSS"],
     postedDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://internshala.com/internship/detail/groww-frontend-nextjs",
+    applyUrl: "https://groww.in/careers",
     source: "internshala",
     sourceAttribution: "via Internshala"
   },
@@ -167,7 +167,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Node.js", "Express", "MongoDB", "Redis"],
     postedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://internshala.com/internship/detail/ola-nodejs-api",
+    applyUrl: "https://www.olacabs.com/careers",
     source: "internshala",
     sourceAttribution: "via Internshala"
   },
@@ -191,7 +191,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Docker", "AWS", "DevOps"],
     postedDate: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://internshala.com/internship/detail/freshworks-devops",
+    applyUrl: "https://www.freshworks.com/company/careers/",
     source: "internshala",
     sourceAttribution: "via Internshala"
   },
@@ -215,7 +215,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Kotlin", "Git"],
     postedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://internshala.com/internship/detail/meesho-android-kotlin",
+    applyUrl: "https://www.meesho.io/careers",
     source: "internshala",
     sourceAttribution: "via Internshala"
   },
@@ -239,7 +239,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Python", "PyTorch", "Git"],
     postedDate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://internshala.com/internship/detail/wipro-ml-intern",
+    applyUrl: "https://careers.wipro.com/careers",
     source: "internshala",
     sourceAttribution: "via Internshala"
   },
@@ -265,7 +265,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Git"],
     postedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.naukri.com/job-listings-tcs-software-engineer-nextjs",
+    applyUrl: "https://www.tcs.com/careers",
     source: "naukri",
     sourceAttribution: "via Naukri.com"
   },
@@ -289,7 +289,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Java", "Spring Boot", "PostgreSQL", "Docker", "Redis"],
     postedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.naukri.com/job-listings-infosys-java-backend-spring-boot",
+    applyUrl: "https://www.infosys.com/careers.html",
     source: "naukri",
     sourceAttribution: "via Naukri.com"
   },
@@ -313,7 +313,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Docker", "Kubernetes", "DevOps", "Terraform", "AWS", "Python", "CI/CD"],
     postedDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.naukri.com/job-listings-wipro-devops-cloud-engineer",
+    applyUrl: "https://careers.wipro.com/careers",
     source: "naukri",
     sourceAttribution: "via Naukri.com"
   },
@@ -337,7 +337,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Node.js", "Express", "TypeScript", "Redis", "PostgreSQL", "Kafka"],
     postedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.naukri.com/job-listings-hcl-nodejs-senior",
+    applyUrl: "https://www.hcltech.com/careers",
     source: "naukri",
     sourceAttribution: "via Naukri.com"
   },
@@ -361,7 +361,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["React", "TypeScript", "Git"],
     postedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.naukri.com/job-listings-cognizant-react-native",
+    applyUrl: "https://careers.cognizant.com",
     source: "naukri",
     sourceAttribution: "via Naukri.com"
   },
@@ -385,7 +385,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Python", "SQL", "AWS"],
     postedDate: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.naukri.com/job-listings-techmahindra-python-data",
+    applyUrl: "https://careers.techmahindra.com",
     source: "naukri",
     sourceAttribution: "via Naukri.com"
   },
@@ -409,7 +409,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Python", "PyTorch", "Docker", "AWS"],
     postedDate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.naukri.com/job-listings-lt-ml-engineer",
+    applyUrl: "https://careers.accenture.com/in-en",
     source: "naukri",
     sourceAttribution: "via Naukri.com"
   },
@@ -433,7 +433,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["TypeScript", "JavaScript", "Git", "CI/CD"],
     postedDate: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.naukri.com/job-listings-capgemini-senior-qa",
+    applyUrl: "https://www.capgemini.com/careers/",
     source: "naukri",
     sourceAttribution: "via Naukri.com"
   },
@@ -457,7 +457,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Angular", "TypeScript", "JavaScript", "Git"],
     postedDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.naukri.com/job-listings-mindtree-angular",
+    applyUrl: "https://www.capgemini.com/careers/",
     source: "naukri",
     sourceAttribution: "via Naukri.com"
   },
@@ -481,7 +481,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Java", "Spring Boot", "Docker", "Kubernetes", "Kafka", "PostgreSQL"],
     postedDate: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.naukri.com/job-listings-accenture-java-architect",
+    applyUrl: "https://www.accenture.com/in-en/careers",
     source: "naukri",
     sourceAttribution: "via Naukri.com"
   },
@@ -505,7 +505,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["React", "TypeScript", "Next.js", "Tailwind CSS"],
     postedDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.linkedin.com/jobs/view/vercel-frontend-engineer",
+    applyUrl: "https://vercel.com/careers",
     source: "cached",
     sourceAttribution: "via LinkedIn"
   },
@@ -529,7 +529,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["React", "Go", "SQL"],
     postedDate: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.indeed.com/viewjob?jk=stripe-full-stack",
+    applyUrl: "https://stripe.com/jobs",
     source: "cached",
     sourceAttribution: "via Indeed"
   },
@@ -553,7 +553,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Next.js", "React", "Node.js", "PostgreSQL"],
     postedDate: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://wellfound.com/jobs/cognitive-labs-founding-engineer",
+    applyUrl: "https://wellfound.com/jobs",
     source: "cached",
     sourceAttribution: "via Wellfound"
   },
@@ -577,7 +577,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["TypeScript", "JavaScript", "Git"],
     postedDate: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.glassdoor.co.in/job-listing/deloitte-qa-automation-lead",
+    applyUrl: "https://www2.deloitte.com/in/en/careers/careers.html",
     source: "cached",
     sourceAttribution: "via Glassdoor"
   },
@@ -601,7 +601,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Docker", "Kubernetes", "AWS", "DevOps"],
     postedDate: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.foundit.in/job/cognizant-cloud-infrastructure",
+    applyUrl: "https://careers.cognizant.com",
     source: "cached",
     sourceAttribution: "via Foundit"
   },
@@ -625,7 +625,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["React", "JavaScript", "Tailwind CSS"],
     postedDate: new Date(Date.now() - 14 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.shine.com/jobs/capgemini-react-web-developer",
+    applyUrl: "https://www.capgemini.com/careers/",
     source: "cached",
     sourceAttribution: "via Shine.com"
   },
@@ -649,7 +649,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["React", "Flutter", "Git"],
     postedDate: new Date(Date.now() - 16 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://unstop.com/internships/hdfc-hackathon-trainee",
+    applyUrl: "https://www.hdfcbank.com/personal/about-us/careers",
     source: "cached",
     sourceAttribution: "via Unstop"
   },
@@ -673,7 +673,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["React", "Node.js", "MongoDB"],
     postedDate: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "http://www.twenty19.com/internship/zepto-fullstack-intern",
+    applyUrl: "https://www.zepto.co.in",
     source: "cached",
     sourceAttribution: "via Twenty19"
   },
@@ -697,7 +697,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Figma", "Tailwind CSS"],
     postedDate: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.hellointern.com/internship/blinkit-uiux-design",
+    applyUrl: "https://blinkit.com/careers",
     source: "cached",
     sourceAttribution: "via Hello Intern"
   },
@@ -721,7 +721,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Java", "SQL", "Git"],
     postedDate: new Date(Date.now() - 22 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.freshersworld.com/jobs/techmahindra-associate",
+    applyUrl: "https://careers.techmahindra.com",
     source: "cached",
     sourceAttribution: "via Freshersworld"
   },
@@ -745,7 +745,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Node.js", "Express", "SQL"],
     postedDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.hackerearth.com/challenges/hiring/ibm-nodejs-developer",
+    applyUrl: "https://www.ibm.com/careers",
     source: "cached",
     sourceAttribution: "via HackerEarth"
   },
@@ -769,7 +769,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["React", "Next.js", "TypeScript", "Node.js"],
     postedDate: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://cutshort.io/job/razorpay-tech-lead",
+    applyUrl: "https://razorpay.com/jobs/",
     source: "cached",
     sourceAttribution: "via Cutshort"
   },
@@ -793,7 +793,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Node.js", "PostgreSQL", "Redis"],
     postedDate: new Date(Date.now() - 28 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.hirect.in/jobs/khatabook-nodejs-backend",
+    applyUrl: "https://khatabook.com/careers",
     source: "cached",
     sourceAttribution: "via Hirect"
   },
@@ -817,7 +817,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["React", "SQL", "Git"],
     postedDate: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://internship.aicte-india.org/internship/detail/smart-india",
+    applyUrl: "https://internship.aicte-india.org",
     source: "cached",
     sourceAttribution: "via AICTE Portal"
   },
@@ -841,7 +841,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["JavaScript", "Git"],
     postedDate: new Date(Date.now() - 32 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.mygov.in/internship/nic-developer",
+    applyUrl: "https://www.mygov.in",
     source: "cached",
     sourceAttribution: "via MyGov"
   },
@@ -865,7 +865,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Java", "Go", "Git"],
     postedDate: new Date(Date.now() - 34 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://careers.google.com/jobs/results/google-swe-iii",
+    applyUrl: "https://careers.google.com",
     source: "cached",
     sourceAttribution: "via Google Career Page"
   },
@@ -888,7 +888,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Java", "Go", "Docker", "Kubernetes", "AWS"],
     postedDate: new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://careers.microsoft.com/us/en/job/microsoft-architect",
+    applyUrl: "https://careers.microsoft.com",
     source: "cached",
     sourceAttribution: "via Microsoft Career Page"
   },
@@ -912,7 +912,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["Git", "Python"],
     postedDate: new Date(Date.now() - 38 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://apna.co/jobs/teleperformance-tech-support",
+    applyUrl: "https://apna.co/jobs",
     source: "cached",
     sourceAttribution: "via Apna"
   },
@@ -936,7 +936,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["SQL"],
     postedDate: new Date(Date.now() - 40 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.workindia.in/jobs/prime-database-operator",
+    applyUrl: "https://www.workindia.in",
     source: "cached",
     sourceAttribution: "via WorkIndia"
   },
@@ -960,7 +960,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["React", "TypeScript", "Tailwind CSS"],
     postedDate: new Date(Date.now() - 42 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.upwork.com/jobs/react-typescript-consultant",
+    applyUrl: "https://www.upwork.com",
     source: "cached",
     sourceAttribution: "via Upwork"
   },
@@ -984,7 +984,7 @@ export const HIGH_FIDELITY_FALLBACK_JOBS: UnifiedJob[] = [
     ],
     skills: ["JavaScript", "Tailwind CSS"],
     postedDate: new Date(Date.now() - 44 * 60 * 60 * 1000).toISOString(),
-    applyUrl: "https://www.fiverr.com/gigs/wordpress-builder",
+    applyUrl: "https://www.fiverr.com",
     source: "cached",
     sourceAttribution: "via Fiverr"
   }
