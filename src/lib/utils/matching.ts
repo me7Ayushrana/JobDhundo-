@@ -1,9 +1,13 @@
 export interface UserProfile {
+    id?: string;
     name: string;
     github: string;
     role: "Frontend" | "Backend" | "Fullstack" | "Designer" | "DevOps" | "Product";
     skills: string[];
     style: "Builder" | "Designer" | "Thinker" | "Hustler";
+    company?: string;      // Current company (e.g. "Google", "Vercel")
+    canRefer?: boolean;    // Whether they can provide referrals
+    avatar?: string;
 }
 
 export interface MatchResult {
@@ -27,45 +31,54 @@ export function calculateMatch(current: UserProfile, target: UserProfile): Match
     let score = 0;
     const reasons: string[] = [];
 
-    // 1. Skill Overlap (30%)
-    const overlap = current.skills.filter(s => target.skills.includes(s));
-    const skillScore = Math.min((overlap.length / Math.max(current.skills.length, 1)) * 30, 30);
-    if (overlap.length > 0) reasons.push(`Shared technical DNA: ${overlap.slice(0, 2).join(", ")}`);
+    // 1. Target Company / Referral Alignment (35%)
+    let referralScore = 0;
+    if (target.canRefer && target.company) {
+        referralScore = 35;
+        reasons.push(`Can refer you at ${target.company}`);
+    } else if (target.company) {
+        referralScore = 20;
+        reasons.push(`Works at target company: ${target.company}`);
+    } else {
+        referralScore = 10;
+    }
+    score += referralScore;
 
-    // 2. Role Synergy (40%) - Crucial for Hackathons
+    // 2. Technical Skill Synergy (35%)
+    const overlap = current.skills.filter(s => target.skills.includes(s));
+    const skillScore = Math.min((overlap.length / Math.max(current.skills.length, 1)) * 35, 35);
+    if (overlap.length > 0) {
+        reasons.push(`Shared tech DNA: ${overlap.slice(0, 2).join(", ")}`);
+    } else {
+        reasons.push(`Complementary tech stacks`);
+    }
+    score += skillScore;
+
+    // 3. Role Complementarity (30%)
     let roleScore = 0;
-    const rolePairs: Record<string, string[]> = {
-        "Frontend": ["Backend", "Designer", "DevOps"],
-        "Backend": ["Frontend", "DevOps", "Designer"],
+    const complementaryRoles: Record<string, string[]> = {
+        "Frontend": ["Backend", "Designer", "Product"],
+        "Backend": ["Frontend", "DevOps", "Fullstack"],
+        "Fullstack": ["Frontend", "Backend", "Product"],
         "Designer": ["Frontend", "Fullstack"],
-        "DevOps": ["Backend", "Fullstack"]
+        "DevOps": ["Backend", "Fullstack"],
+        "Product": ["Fullstack", "Designer"]
     };
 
-    if (rolePairs[current.role]?.includes(target.role)) {
-        roleScore = 40;
-        reasons.push(`High Synergy: ${current.role} + ${target.role} duo`);
+    if (complementaryRoles[current.role]?.includes(target.role)) {
+        roleScore = 30;
+        reasons.push(`Great role complementarity (${current.role} + ${target.role})`);
     } else if (current.role === target.role) {
         roleScore = 15;
-        reasons.push(`Double ${current.role} power for high velocity`);
+        reasons.push(`Shared ${current.role} specialization for peer advice`);
     } else {
-        roleScore = 25;
+        roleScore = 20;
     }
+    score += roleScore;
 
-    // 3. Work Style Balance (30%)
-    let styleScore = 0;
-    if (current.style !== target.style) {
-        styleScore = 30;
-        reasons.push(`${target.style} perspective balances your ${current.style} approach`);
-    } else {
-        styleScore = 15;
-        reasons.push(`Synchronized ${current.style} alignment`);
-    }
-
-    score = skillScore + roleScore + styleScore;
-
-    // DNA Inference (Mocked based on role/skills)
-    const dnaType = target.role === "Backend" || target.role === "DevOps" ? "System Architect" : "UX Visionary";
-    const dnaStrength = target.skills.length > 3 ? "High-Density" : "Focused";
+    // DNA Inference
+    const dnaType = target.canRefer ? "Referrer Catalyst" : "Industry Peer";
+    const dnaStrength = target.skills.length > 3 ? "Multi-Disciplinary" : "Specialized Focus";
 
     return {
         user: target,
@@ -76,42 +89,80 @@ export function calculateMatch(current: UserProfile, target: UserProfile): Match
             strength: dnaStrength
         },
         radar: {
-            technical: Math.round((skillScore / 30) * 100),
-            complementary: Math.round((roleScore / 40) * 100),
-            experience: 85 + Math.floor(Math.random() * 10),
-            style: Math.round((styleScore / 30) * 100),
-            velocity: 90
+            technical: Math.round((skillScore / 35) * 100),
+            complementary: Math.round((roleScore / 30) * 100),
+            experience: 80 + Math.floor(Math.random() * 20),
+            style: target.canRefer ? 95 : 75,
+            velocity: 85
         }
     };
 }
 
 export const MOCK_USERS: UserProfile[] = [
     {
+        id: "user-1",
         name: "Alex River",
         github: "ariver_dev",
         role: "Backend",
         skills: ["Node.js", "Python", "PostgreSQL", "Redis"],
-        style: "Builder"
+        style: "Builder",
+        company: "Google",
+        canRefer: true,
+        avatar: "A"
     },
     {
+        id: "user-2",
         name: "Sarah Chen",
         github: "schen_design",
         role: "Designer",
         skills: ["Figma", "React", "TailwindCSS", "Framer Motion"],
-        style: "Designer"
+        style: "Designer",
+        company: "Meta",
+        canRefer: true,
+        avatar: "S"
     },
     {
+        id: "user-3",
         name: "Marcus Thorne",
         github: "mthorne_lead",
         role: "Fullstack",
         skills: ["React", "Go", "Kubernetes", "AWS"],
-        style: "Thinker"
+        style: "Thinker",
+        company: "Vercel",
+        canRefer: false,
+        avatar: "M"
     },
     {
+        id: "user-4",
         name: "Jasmine Lee",
         github: "jlee_hustle",
         role: "Product",
         skills: ["Strategy", "Market Analysis", "User Research", "Agile"],
-        style: "Hustler"
+        style: "Hustler",
+        company: "Netflix",
+        canRefer: true,
+        avatar: "J"
+    },
+    {
+        id: "user-5",
+        name: "Rahul Verma",
+        github: "rahulv_code",
+        role: "Backend",
+        skills: ["Go", "Docker", "AWS", "MongoDB"],
+        style: "Builder",
+        company: "Microsoft",
+        canRefer: false,
+        avatar: "R"
+    },
+    {
+        id: "user-6",
+        name: "Priya Nair",
+        github: "priya_ml",
+        role: "Fullstack",
+        skills: ["Python", "TensorFlow", "React", "FastAPI"],
+        style: "Thinker",
+        company: "Google",
+        canRefer: false,
+        avatar: "P"
     }
 ];

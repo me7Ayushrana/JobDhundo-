@@ -48,18 +48,17 @@ export function Navbar() {
                     </Link>
 
                     <div className="hidden md:flex items-center gap-7 font-bold text-[11px] uppercase tracking-[0.15em] text-stone-700 relative z-10">
-                        <Link href="/matches" className="hover:text-primary text-stone-700 transition-colors active:scale-95 transition-transform">
-                            Teammates
+                        <Link href="/jobs" className="hover:text-primary text-stone-700 transition-colors active:scale-95 transition-transform">
+                            Jobs
+                        </Link>
+                        <Link href="/network" className="hover:text-primary text-stone-700 transition-colors active:scale-95 transition-transform">
+                            Network
                         </Link>
                         <Link href="/analyzer" className="hover:text-primary text-stone-700 transition-colors active:scale-95 transition-transform">
                             Analyzer
                         </Link>
-                        <Link href="/team" className="hover:text-primary text-stone-700 transition-colors active:scale-95 transition-transform group/hq relative">
-                            Nexus HQ
-                            <div className="absolute -top-0.5 -right-2 w-1.5 h-1.5 bg-primary rounded-full animate-pulse shadow-glow" />
-                        </Link>
                         <Link href="/dashboard" className="hover:text-primary text-stone-700 transition-colors active:scale-95 transition-transform">
-                            Arena
+                            Dashboard
                         </Link>
                     </div>
 
@@ -93,8 +92,8 @@ export function Navbar() {
                             </button>
                         )}
                         
-                        <Link href="/matches" className="text-primary hover:text-primary/80 transition-colors active:scale-95 transition-transform font-black">
-                            Build Now
+                        <Link href="/jobs" className="text-primary hover:text-primary/80 transition-colors active:scale-95 transition-transform font-black">
+                            Find Jobs
                         </Link>
                     </div>
                 </nav>

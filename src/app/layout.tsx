@@ -4,7 +4,6 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SmoothScrollProvider } from "@/components/providers/smooth-scroll-provider";
 import { Navbar } from "@/components/layout/navbar";
-import { HackathonTimer } from "@/components/layout/hackathon-timer";
 import { NexusChat } from "@/components/ai/nexus-chat";
 import { SocialProvider } from "@/components/providers/social-context";
 
@@ -19,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DevMatch | AI-Powered Hackathon Teammate Matcher",
-  description: "Instantly find your perfect hackathon teammates and analyze GitHub repositories with AI.",
+  title: "DevMatch Jobs | Unified Software Engineering Job Platform",
+  description: "Aggregated software engineering jobs, real-time networking, and AI-powered career coach.",
 };
 
 export default function RootLayout({
@@ -44,7 +43,6 @@ export default function RootLayout({
               <main className="min-h-screen bg-grid">
                 {children}
               </main>
-              <HackathonTimer />
               <NexusChat />
             </SocialProvider>
           </SmoothScrollProvider>

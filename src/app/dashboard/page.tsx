@@ -1,1039 +1,618 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Trophy,
-    Calendar,
-    Users,
-    Plus,
-    CheckCircle2,
-    XCircle,
-    LayoutGrid,
-    ShieldCheck,
-    Send,
-    Sparkles,
-    ArrowRight,
-    Zap,
-    ExternalLink,
-    Search,
-    Clock,
-    Target,
-    RefreshCw,
-    Wifi,
-    WifiOff,
-    Database,
-    Flame,
-    Shield,
-    MapPin,
-    Briefcase,
-    DollarSign,
-    SlidersHorizontal,
-    Check,
+  Briefcase,
+  Bookmark,
+  Send,
+  Sparkles,
+  Award,
+  DollarSign,
+  TrendingUp,
+  Clock,
+  Plus,
+  Trash2,
+  CheckCircle,
+  HelpCircle,
+  FileText,
+  MapPin,
+  ExternalLink
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useSocial } from "@/components/providers/social-context";
+import { UnifiedJob } from "@/lib/jobs/types";
+import { HIGH_FIDELITY_FALLBACK_JOBS } from "@/lib/jobs/mock-data";
+import { calculateMatchScore } from "@/lib/jobs/match-scorer";
+import { JobCard } from "@/components/jobs/job-card";
+import { JobDetailsModal } from "@/components/jobs/job-details-modal";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  ResponsiveContainer,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  Bar
+} from "recharts";
 
-// ── Types ──────────────────────────────────────────────────────────
-interface ArenaHackathon {
-    id: string;
-    title: string;
-    organizer: string;
-    daysLeft: number | null;
-    participants: number;
-    imageUrl: string;
-    unstopUrl: string;
-    tags: string[];
-    prize?: string;
-    stipend?: string;
-    salary?: string;
-    opportunityType: "hackathon" | "internship" | "job";
-    teamFitScore: number;
-    suggestedRoles: string[];
-    location: string;
+interface Application {
+  id: string;
+  company: string;
+  role: string;
+  status: "applied" | "interviewing" | "offer" | "rejected";
+  date: string;
+  notes: string;
 }
 
-interface LocalHackathon {
-    id: string;
-    title: string;
-    date: string;
-    prize: string;
-    participants: number;
-    status: 'approved' | 'pending';
-    category: string;
-    image?: string;
-}
-
-type DataSource = "live" | "cache" | "fallback";
-
-interface UserPreferences {
-    preferredRoles: string[];
-    skills: string[];
-    location: string;
-}
-
-const PRESET_ROLES = [
-    "Frontend Dev",
-    "Backend Dev",
-    "Full-Stack Dev",
-    "ML Engineer",
-    "Data Scientist",
-    "Smart Contract Dev",
-    "Web3 Engineer",
-    "DevOps Engineer",
-    "UI/UX Designer",
-    "Mobile Dev",
+const SKILL_MARKET_DATA = [
+  { subject: "React", user: 90, market: 95 },
+  { subject: "TypeScript", user: 80, market: 90 },
+  { subject: "Node.js", user: 70, market: 85 },
+  { subject: "Go", user: 30, market: 60 },
+  { subject: "AWS", user: 45, market: 75 },
+  { subject: "Tailwind CSS", user: 95, market: 85 }
 ];
 
-const PRESET_SKILLS = [
-    "React",
-    "Next.js",
-    "TypeScript",
-    "Python",
-    "Solidity",
-    "Node.js",
-    "AWS",
-    "Figma",
-    "Docker",
-    "GraphQL",
-];
+const SALARY_INSIGHTS_DATA = {
+  "Full Stack": [
+    { location: "Bangalore", min: 15, max: 32 },
+    { location: "Remote (Global)", min: 55, max: 110 },
+    { location: "San Francisco", min: 110, max: 190 },
+    { location: "London", min: 55, max: 95 }
+  ],
+  "Frontend": [
+    { location: "Bangalore", min: 12, max: 26 },
+    { location: "Remote (Global)", min: 45, max: 95 },
+    { location: "San Francisco", min: 95, max: 165 },
+    { location: "London", min: 48, max: 80 }
+  ],
+  "Backend": [
+    { location: "Bangalore", min: 16, max: 35 },
+    { location: "Remote (Global)", min: 58, max: 125 },
+    { location: "San Francisco", min: 115, max: 200 },
+    { location: "London", min: 58, max: 105 }
+  ],
+  "DevOps": [
+    { location: "Bangalore", min: 18, max: 38 },
+    { location: "Remote (Global)", min: 65, max: 130 },
+    { location: "San Francisco", min: 120, max: 210 },
+    { location: "London", min: 62, max: 115 }
+  ]
+};
 
-const PRESET_LOCATIONS = [
-    "Remote",
-    "Bengaluru",
-    "Delhi NCR",
-    "Mumbai",
-    "Pune",
-    "Hyderabad",
-    "Chennai",
-    "Any"
-];
+export default function DashboardPage() {
+  const { currentUser } = useSocial();
+  const [activeTab, setActiveTab] = useState<"feed" | "saved" | "applications" | "skills" | "salary">("feed");
 
-// Helper to compute fit score dynamically based on user preferences
-function computeOpportunityFit(opp: ArenaHackathon, prefs: UserPreferences): number {
-    let score = 35;
-    
-    // 1. Location match
-    const oppLoc = (opp.location || "").toLowerCase();
-    const prefLoc = (prefs.location || "").toLowerCase();
-    if (prefLoc === "remote" && oppLoc === "remote") {
-        score += 25;
-    } else if (oppLoc.includes(prefLoc) || prefLoc.includes(oppLoc)) {
-        score += 25;
-    } else if (oppLoc === "remote" || prefLoc === "any") {
-        score += 15;
+  // Job Listing detail trigger
+  const [selectedJob, setSelectedJob] = useState<UnifiedJob | null>(null);
+
+  // States
+  const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
+  const [recommendedJobs, setRecommendedJobs] = useState<UnifiedJob[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [selectedSalaryRole, setSelectedSalaryRole] = useState<"Full Stack" | "Frontend" | "Backend" | "DevOps">("Full Stack");
+
+  // Application form states
+  const [appCompany, setAppCompany] = useState("");
+  const [appRole, setAppRole] = useState("");
+  const [appStatus, setAppStatus] = useState<Application["status"]>("applied");
+  const [appNotes, setAppNotes] = useState("");
+  const [showAddAppForm, setShowAddAppForm] = useState(false);
+
+  // Load persistence details
+  useEffect(() => {
+    // 1. Saved Bookmarks
+    const saved = localStorage.getItem("devmatch_saved_jobs");
+    if (saved) {
+      try {
+        setSavedJobIds(JSON.parse(saved));
+      } catch (_) {}
     }
-    
-    // 2. Roles match
-    let roleMatches = 0;
-    for (const role of opp.suggestedRoles || []) {
-        if (prefs.preferredRoles.some(r => r.toLowerCase() === role.toLowerCase())) {
-            roleMatches++;
+
+    // 2. Applications Trackers
+    const apps = localStorage.getItem("devmatch_applications");
+    if (apps) {
+      try {
+        setApplications(JSON.parse(apps));
+      } catch (_) {}
+    } else {
+      // Seed fallback application for demonstration
+      const seedApps: Application[] = [
+        {
+          id: "app-seed-1",
+          company: "Vercel",
+          role: "Senior Full Stack Engineer",
+          status: "interviewing",
+          date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+          notes: "Had a great screening round. Technical interview scheduled for next Tuesday."
         }
+      ];
+      setApplications(seedApps);
+      localStorage.setItem("devmatch_applications", JSON.stringify(seedApps));
     }
-    score += Math.min(roleMatches * 15, 30);
+  }, []);
+
+  // Sync saved jobs and compute feed recommendations
+  useEffect(() => {
+    // Fetch live feed matched exactly to user skills
+    const userSkills = currentUser?.skills || ["React", "TypeScript", "Node.js"];
     
-    // 3. Skills/Tags match
-    let skillMatches = 0;
-    const oppText = `${opp.title} ${opp.tags.join(" ")}`.toLowerCase();
-    for (const skill of prefs.skills) {
-        if (oppText.includes(skill.toLowerCase())) {
-            skillMatches++;
-        }
+    // In dev match fallback database, score and sort all listings
+    const matched = HIGH_FIDELITY_FALLBACK_JOBS.map(job => {
+      const matchScore = calculateMatchScore(
+        userSkills,
+        job.skills,
+        { preferredLocations: [], minSalary: 0, jobTypes: [], remoteOnly: false },
+        job
+      );
+      return { ...job, matchScore };
+    }).sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+
+    setRecommendedJobs(matched);
+  }, [currentUser]);
+
+  // Derived Saved Jobs list
+  const savedJobs = useMemo(() => {
+    return recommendedJobs.filter(job => savedJobIds.includes(job.id));
+  }, [recommendedJobs, savedJobIds]);
+
+  const handleSaveToggle = (job: UnifiedJob) => {
+    let updated;
+    if (savedJobIds.includes(job.id)) {
+      updated = savedJobIds.filter(id => id !== job.id);
+    } else {
+      updated = [...savedJobIds, job.id];
     }
-    score += Math.min(skillMatches * 10, 30);
-    
-    // Jitter based on ID to remain deterministic per opportunity
-    const hash = opp.title.charCodeAt(0) + (opp.title.charCodeAt(opp.title.length - 1) || 0);
-    const jitter = hash % 5;
-    
-    return Math.min(score + jitter, 99);
-}
+    setSavedJobIds(updated);
+    localStorage.setItem("devmatch_saved_jobs", JSON.stringify(updated));
+  };
 
-// ── Skeleton Card ──────────────────────────────────────────────────
-function SkeletonCard() {
-    return (
-        <div className="glass-premium rounded-[2.5rem] overflow-hidden animate-pulse">
-            <div className="h-52 m-2 rounded-[2rem] bg-foreground/[0.04]" />
-            <div className="px-8 py-6 space-y-4">
-                <div className="h-6 bg-foreground/[0.06] rounded-xl w-3/4" />
-                <div className="h-4 bg-foreground/[0.04] rounded-lg w-1/2" />
-                <div className="flex gap-2 mt-4">
-                    <div className="h-6 bg-foreground/[0.04] rounded-full w-16" />
-                    <div className="h-6 bg-foreground/[0.04] rounded-full w-20" />
-                </div>
-                <div className="h-px bg-foreground/5 my-4" />
-                <div className="flex justify-between items-center">
-                    <div className="h-8 bg-foreground/[0.04] rounded-lg w-24" />
-                    <div className="h-10 bg-foreground/[0.04] rounded-xl w-28" />
-                </div>
-                <div className="h-14 bg-foreground/[0.06] rounded-2xl w-full mt-4" />
-            </div>
-        </div>
-    );
-}
+  // Add application tracker
+  const handleAddApplication = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!appCompany.trim() || !appRole.trim()) return;
 
-// ── Match Fit Badge ─────────────────────────────────────────────────
-function TeamFitBadge({ score }: { score: number }) {
-    const color =
-        score >= 75
-            ? "from-emerald-500/20 to-emerald-500/5 border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
-            : score >= 50
-                ? "from-amber-500/20 to-amber-500/5 border-amber-500/40 text-amber-600 dark:text-amber-400"
-                : "from-red-500/20 to-red-500/5 border-red-500/40 text-red-600 dark:text-red-400";
-
-    const glowColor =
-        score >= 75
-            ? "rgba(16,185,129,0.2)"
-            : score >= 50
-                ? "rgba(245,158,11,0.2)"
-                : "rgba(239,68,68,0.2)";
-
-    return (
-        <div
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r ${color} border text-xs font-black tracking-wider`}
-            style={{ boxShadow: `0 0 12px ${glowColor}` }}
-        >
-            <Target className="w-3.5 h-3.5" />
-            {score}% MATCH
-        </div>
-    );
-}
-
-// ── Days Left Pill ─────────────────────────────────────────────────
-function DaysLeftPill({ days }: { days: number | null }) {
-    if (days === null) return <span className="text-foreground/30 text-xs italic">Open Application</span>;
-
-    const urgent = days <= 3;
-    const soon = days <= 7;
-
-    return (
-        <span
-            className={`flex items-center gap-1.5 text-xs font-mono font-bold tracking-wider ${
-                urgent
-                    ? "text-red-500 dark:text-red-400"
-                    : soon
-                        ? "text-amber-500 dark:text-amber-400"
-                        : "text-foreground/50"
-            }`}
-        >
-            {urgent ? <Flame className="w-3.5 h-3.5 animate-pulse" /> : <Clock className="w-3.5 h-3.5" />}
-            {days === 0 ? "ENDS TODAY" : days === 1 ? "1 DAY LEFT" : `${days} DAYS LEFT`}
-        </span>
-    );
-}
-
-// ── Source Indicator ───────────────────────────────────────────────
-function SourceIndicator({ source }: { source: DataSource }) {
-    const config = {
-        live: { icon: Wifi, label: "LIVE", color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
-        cache: { icon: Database, label: "CACHED", color: "text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border-cyan-500/20" },
-        fallback: { icon: WifiOff, label: "OFFLINE", color: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20" },
-    };
-    const { icon: Icon, label, color } = config[source];
-    return (
-        <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-mono font-bold tracking-[0.2em] ${color}`}>
-            <Icon className="w-3 h-3" />
-            {label}
-        </div>
-    );
-}
-
-// ── Opportunity Card with Spotify/Clutch Expanding Hover Effect ─────
-function OpportunityCard({ hack, preferences, index }: { hack: ArenaHackathon; preferences: UserPreferences; index: number }) {
-    const [isHovered, setIsHovered] = useState(false);
-    const hoverTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-    const handleMouseEnter = () => {
-        if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-        hoverTimerRef.current = setTimeout(() => {
-            setIsHovered(true);
-        }, 900);
+    const newApp: Application = {
+      id: `app-${Date.now()}`,
+      company: appCompany.trim(),
+      role: appRole.trim(),
+      status: appStatus,
+      date: new Date().toISOString().split("T")[0],
+      notes: appNotes.trim()
     };
 
-    const handleMouseLeave = () => {
-        if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-        setIsHovered(false);
-    };
+    const updated = [newApp, ...applications];
+    setApplications(updated);
+    localStorage.setItem("devmatch_applications", JSON.stringify(updated));
 
-    useEffect(() => {
-        return () => {
-            if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-        };
-    }, []);
+    // Reset Form
+    setAppCompany("");
+    setAppRole("");
+    setAppStatus("applied");
+    setAppNotes("");
+    setShowAddAppForm(false);
+  };
 
-    const isLeft = index % 3 === 0;
-    const isRight = index % 3 === 2;
+  // Delete application tracker
+  const handleDeleteApplication = (id: string) => {
+    const updated = applications.filter(a => a.id !== id);
+    setApplications(updated);
+    localStorage.setItem("devmatch_applications", JSON.stringify(updated));
+  };
 
-    const hoverPositionClass = isLeft
-        ? "md:left-0"
-        : isRight
-            ? "md:right-0"
-            : "md:left-1/2 md:-translate-x-1/2";
+  // Update application status
+  const handleUpdateAppStatus = (id: string, newStatus: Application["status"]) => {
+    const updated = applications.map(a => a.id === id ? { ...a, status: newStatus } : a);
+    setApplications(updated);
+    localStorage.setItem("devmatch_applications", JSON.stringify(updated));
+  };
 
-    return (
-        <div
-            className="w-full max-w-sm h-[400px] relative shrink-0"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-        >
-            <motion.div
-                layout
-                transition={{
-                    type: "spring",
-                    stiffness: 240,
-                    damping: 24,
-                }}
-                className={`flex flex-col cursor-pointer transition-[background-color,border-color] duration-300 border rounded-[2.5rem] ${
-                    isHovered
-                        ? `md:flex-row md:items-stretch w-full md:w-[580px] bg-card border-primary/40 dark:border-primary/50 shadow-2xl md:absolute md:top-0 md:z-50 md:min-h-full ${hoverPositionClass}`
-                        : "w-full h-full relative bg-card/60 border-foreground/5 dark:border-white/5 hover:bg-card hover:border-foreground/10"
+  return (
+    <div className="relative min-h-screen bg-stone-50 dark:bg-stone-950 pt-28 pb-20">
+      <div className="container mx-auto px-6 max-w-7xl space-y-8">
+        
+        {/* Title Block */}
+        <div className="space-y-4">
+          <Badge variant="outline" className="bg-primary/5 border-primary/20 text-xs font-mono tracking-widest text-primary overflow-hidden relative">
+            <span className="relative z-10 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 animate-pulse" /> COMMAND CENTER
+            </span>
+          </Badge>
+          <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-none text-stone-900 dark:text-white">
+            Job Command <span className="text-stone-400 italic font-medium">Center</span>
+          </h1>
+          <p className="text-sm text-stone-500 dark:text-stone-400 max-w-md leading-relaxed">
+            Monitor matched feeds, bookmark prospects, track recruiters, and analyze market parameters.
+          </p>
+        </div>
+
+        {/* Tab Selection */}
+        <div className="flex overflow-x-auto pb-2 border-b border-stone-200 dark:border-stone-850 gap-2">
+          {[
+            { id: "feed", label: "My Feed", icon: Briefcase },
+            { id: "saved", label: "Saved Jobs", icon: Bookmark },
+            { id: "applications", label: "Track Applications", icon: Send },
+            { id: "skills", label: "Skill DNA Analytics", icon: Award },
+            { id: "salary", label: "Salary Insights", icon: DollarSign }
+          ].map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? "bg-primary text-white shadow-lg shadow-primary/10"
+                    : "text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-900"
                 }`}
-            >
-            {/* Hover Background Glow */}
-            {isHovered && (
-                <div className="absolute inset-0 bg-primary/5 rounded-[2.5rem] blur-xl -z-10" />
+              >
+                <Icon className="w-4.5 h-4.5" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tab Panels */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            
+            {/* 1. MY FEED */}
+            {activeTab === "feed" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-black text-stone-400 uppercase tracking-widest">Recommended for your DNA</h3>
+                  <Badge variant="outline" className="text-[10px] font-bold text-stone-500 py-0.5 rounded-full border-none bg-stone-100 dark:bg-stone-900">
+                    Matches sorted by score
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {recommendedJobs.map(job => (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      userSkills={currentUser?.skills || ["React", "TypeScript", "Node.js"]}
+                      onViewDetails={(j) => setSelectedJob(j)}
+                      onSave={handleSaveToggle}
+                      isSaved={savedJobIds.includes(job.id)}
+                    />
+                  ))}
+                </div>
+              </div>
             )}
 
-            {/* Image Container - Aspect ratio is locked to 1:1 square in both states to prevent stretching */}
-            <motion.div
-                layout
-                className={`relative overflow-hidden shrink-0 shadow-md aspect-square ${
-                    isHovered
-                        ? "w-full md:w-44 md:h-44 rounded-[1.8rem] m-3 mb-0 md:mb-3"
-                        : "w-full rounded-2xl p-0.5"
-                }`}
-            >
-                <div className="w-full h-full relative rounded-2xl overflow-hidden">
-                    {hack.imageUrl ? (
-                        <img
-                            src={hack.imageUrl}
-                            alt={hack.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                    ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-indigo-900/40 flex items-center justify-center">
-                            <Trophy className="w-10 h-10 text-primary/40" />
-                        </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-40" />
-                </div>
-
-                {/* Match Score Badge (Visible on top right of the square image) */}
-                <div className="absolute top-2 right-2 scale-90 origin-top-right z-20">
-                    <TeamFitBadge score={hack.teamFitScore} />
-                </div>
-            </motion.div>
-
-            {/* Content Wrapper */}
-            <motion.div
-                layout
-                className={`flex flex-col justify-between flex-1 p-5 ${
-                    isHovered
-                        ? "md:pl-4 min-w-0"
-                        : "w-full pt-1 pb-3 px-1"
-                }`}
-            >
-                {isHovered ? (
-                    <div className="flex flex-col justify-between h-full space-y-4">
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5">
-                                    {hack.opportunityType}
-                                </Badge>
-                                <DaysLeftPill days={hack.daysLeft} />
-                            </div>
-                            
-                            <h3 className="text-lg font-black tracking-tight text-foreground leading-snug line-clamp-2">
-                                {hack.title}
-                            </h3>
-                            
-                            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">
-                                <Shield className="w-3.5 h-3.5 text-primary/60 shrink-0" />
-                                <span className="truncate">{hack.organizer}</span>
-                            </div>
-
-                            {/* Location */}
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-                                <span>{hack.location}</span>
-                            </div>
-                        </div>
-
-                        {/* Middle detailed metadata (Tags, Roles, Match Rationale) */}
-                        <div className="space-y-3">
-                            <div className="flex flex-wrap gap-1.5">
-                                {hack.tags.slice(0, 3).map((tag) => (
-                                    <Badge
-                                        key={tag}
-                                        variant="outline"
-                                        className="bg-foreground/[0.02] border-foreground/10 text-[9px] text-muted-foreground font-mono"
-                                    >
-                                        {tag}
-                                    </Badge>
-                                ))}
-                            </div>
-                            
-                            {/* Match explanation */}
-                            {hack.teamFitScore >= 50 && (
-                                <div className="text-[10px] text-muted-foreground bg-primary/5 rounded-xl p-2 border border-primary/10 flex items-center gap-1.5">
-                                    <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" />
-                                    <span className="line-clamp-1">
-                                        Matched: {[
-                                            (hack.location || "").toLowerCase() === preferences.location.toLowerCase() ? "Location" : null,
-                                            hack.suggestedRoles.some(r => preferences.preferredRoles.includes(r)) ? "Role" : null,
-                                            preferences.skills.some(s => `${hack.title} ${hack.tags.join(" ")}`.toLowerCase().includes(s.toLowerCase())) ? "Skill" : null
-                                        ].filter(Boolean).join(", ") || "Stack"}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Remuneration Row & CTA Button */}
-                        <div className="space-y-3 pt-2">
-                            <div className="flex justify-between items-center text-xs border-t border-foreground/5 pt-3">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-7 h-7 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                                        {hack.opportunityType === "hackathon" ? (
-                                            <Trophy className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                                        ) : hack.opportunityType === "internship" ? (
-                                            <DollarSign className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                                        ) : (
-                                            <Briefcase className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                                        )}
-                                    </div>
-                                    <span className="font-extrabold text-foreground">
-                                        {hack.opportunityType === "hackathon" ? hack.prize : hack.opportunityType === "internship" ? hack.stipend : hack.salary}
-                                    </span>
-                                </div>
-                                
-                                <span className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground">
-                                    <Users className="w-3 h-3 text-primary" />
-                                    {hack.participants.toLocaleString()}
-                                </span>
-                            </div>
-
-                            <a
-                                href={hack.unstopUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="w-full h-11 rounded-xl bg-foreground hover:bg-foreground/90 text-background dark:bg-white dark:hover:bg-white/90 dark:text-black font-bold uppercase text-[10px] tracking-wider flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 group/btn cursor-pointer"
-                            >
-                                Apply on Unstop
-                                <ExternalLink className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-                            </a>
-                        </div>
-                    </div>
+            {/* 2. SAVED JOBS */}
+            {activeTab === "saved" && (
+              <div className="space-y-6">
+                <h3 className="text-sm font-black text-stone-400 uppercase tracking-widest">Bookmarked Positions</h3>
+                {savedJobs.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {savedJobs.map(job => (
+                      <JobCard
+                        key={job.id}
+                        job={job}
+                        userSkills={currentUser?.skills || ["React", "TypeScript", "Node.js"]}
+                        onViewDetails={(j) => setSelectedJob(j)}
+                        onSave={handleSaveToggle}
+                        isSaved={true}
+                      />
+                    ))}
+                  </div>
                 ) : (
-                    <div className="space-y-1.5 pt-2">
-                        <div className="flex justify-between items-center">
-                            <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary text-[8px] uppercase tracking-wider font-extrabold px-1.5 py-0">
-                                {hack.opportunityType}
-                            </Badge>
-                            <span className="text-[9px] font-mono text-muted-foreground flex items-center gap-0.5 truncate max-w-[100px]">
-                                <MapPin className="w-2.5 h-2.5 shrink-0 text-primary/60" />
-                                <span className="truncate">{hack.location}</span>
-                            </span>
-                        </div>
-                        <h4 className="text-sm font-black text-foreground line-clamp-2 leading-tight min-h-[40px]">
-                            {hack.title}
-                        </h4>
-                        <p className="text-[10px] text-muted-foreground font-semibold truncate">
-                            {hack.organizer}
-                        </p>
-                        
-                        <div className="flex justify-between items-center pt-2 border-t border-foreground/5">
-                            <span className="text-[11px] font-extrabold text-primary">
-                                {hack.opportunityType === "hackathon" 
-                                    ? hack.prize 
-                                    : hack.opportunityType === "internship" 
-                                        ? (hack.stipend?.split("/")[0] || hack.stipend)
-                                        : (hack.salary?.split("/")[0] || hack.salary)}
-                            </span>
-                            <span className="text-[9px] text-muted-foreground/60 font-mono">
-                                {hack.daysLeft !== null ? `${hack.daysLeft}d left` : "Open"}
-                            </span>
-                        </div>
+                  <div className="p-16 text-center bg-white dark:bg-stone-900 border border-black/5 dark:border-white/5 rounded-3xl space-y-4">
+                    <div className="w-12 h-12 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center mx-auto text-stone-400">
+                      <Bookmark className="w-6 h-6" />
                     </div>
-                )}
-            </motion.div>
-        </motion.div>
-    </div>
-);
-}
-
-// ── Main Page Component ────────────────────────────────────────────
-export default function DashboardPage() {
-    // Active tabs: explorer, submit, admin
-    const [activeTab, setActiveTab] = useState("explorer");
-    const [selectedCategory, setSelectedCategory] = useState<"all" | "hackathon" | "internship" | "job">("all");
-
-    // Fetch and loading states
-    const [arenaData, setArenaData] = useState<ArenaHackathon[]>([]);
-    const [dataSource, setDataSource] = useState<DataSource>("fallback");
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [searchQuery, setSearchQuery] = useState("");
-
-    // Preferences panel toggle and values
-    const [showPrefs, setShowPrefs] = useState(false);
-    const [preferences, setPreferences] = useState<UserPreferences>(() => {
-        if (typeof window !== "undefined") {
-            const saved = localStorage.getItem("devmatch_preferences");
-            if (saved) {
-                try {
-                    return JSON.parse(saved);
-                } catch (e) {}
-            }
-        }
-        return {
-            preferredRoles: ["Frontend Dev", "Full-Stack Dev"],
-            skills: ["React", "TypeScript", "Next.js"],
-            location: "Remote",
-        };
-    });
-
-    // Local proposals management
-    const [localHackathons, setLocalHackathons] = useState<LocalHackathon[]>([]);
-    const [newHackathon, setNewHackathon] = useState({ title: "", date: "", prize: "", category: "", image: "" });
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // Save preferences to localstorage
-    useEffect(() => {
-        localStorage.setItem("devmatch_preferences", JSON.stringify(preferences));
-    }, [preferences]);
-
-    // Fetch arena data
-    const fetchArena = async (category = selectedCategory) => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const res = await fetch(`/api/arena?type=${category}`);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const json = await res.json();
-            setArenaData(json.hackathons || []);
-            setDataSource(json.source || "fallback");
-        } catch (err) {
-            console.error("[Arena] Fetch failed:", err);
-            setError("Failed to load live data. Displaying local offline opportunities.");
-            setDataSource("fallback");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Refetch on category changes
-    useEffect(() => {
-        fetchArena(selectedCategory);
-    }, [selectedCategory]);
-
-    // Compute compatibility scores on the fly and filter/sort opportunities
-    const processedOpportunities = useMemo(() => {
-        const query = searchQuery.trim().toLowerCase();
-        
-        let filtered = arenaData;
-        if (query) {
-            filtered = arenaData.filter(
-                (opp) =>
-                    opp.title.toLowerCase().includes(query) ||
-                    opp.organizer.toLowerCase().includes(query) ||
-                    opp.tags.some((t) => t.toLowerCase().includes(query)) ||
-                    opp.suggestedRoles.some((r) => r.toLowerCase().includes(query))
-            );
-        }
-
-        return filtered
-            .map((opp) => ({
-                ...opp,
-                teamFitScore: computeOpportunityFit(opp, preferences),
-            }))
-            .sort((a, b) => b.teamFitScore - a.teamFitScore);
-    }, [arenaData, searchQuery, preferences]);
-
-    const pendingCount = localHackathons.filter((h) => h.status === "pending").length;
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        setTimeout(() => {
-            const submission: LocalHackathon = {
-                id: Math.random().toString(36).substring(2, 11),
-                ...newHackathon,
-                participants: 0,
-                status: "pending",
-            };
-            setLocalHackathons([submission, ...localHackathons]);
-            setNewHackathon({ title: "", date: "", prize: "", category: "", image: "" });
-            setIsSubmitting(false);
-            setActiveTab("explorer");
-        }, 1500);
-    };
-
-    const handleApprove = (id: string) => {
-        setLocalHackathons((prev) => prev.map((h) => (h.id === id ? { ...h, status: "approved" as const } : h)));
-    };
-
-    const handleReject = (id: string) => {
-        setLocalHackathons((prev) => prev.filter((h) => h.id !== id));
-    };
-
-    return (
-        <div className="pt-32 pb-20 container mx-auto px-6 max-w-7xl relative overflow-hidden text-foreground">
-            {/* Ambient Background Glows */}
-            <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
-
-            {/* ── Header ─────────────────────────────────────────── */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12 relative z-10">
-                <div className="space-y-4">
-                    <Badge variant="outline" className="bg-primary/5 border-primary/20 text-xs font-mono tracking-widest text-primary overflow-hidden relative">
-                        <span className="relative z-10 flex items-center gap-1.5">
-                            <Sparkles className="w-3.5 h-3.5 animate-pulse" /> ARENA INTEL
-                        </span>
-                    </Badge>
-                    <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-none">
-                        Nexus <span className="text-foreground/30 italic">Dev</span><br />
-                        <span className="text-primary text-glow">Arena</span>
-                    </h1>
-                    <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
-                        Live match opportunities. Explore hackathons, internships, and jobs tailored directly for you.
+                    <h3 className="text-base font-bold text-stone-900 dark:text-white">No bookmarked jobs</h3>
+                    <p className="text-xs text-stone-500 dark:text-stone-400 font-medium max-w-xs mx-auto">
+                      Click the bookmark icon on any job card inside the discovery feed to save it here for tracking.
                     </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 3. APPLICATIONS TRACKER */}
+            {activeTab === "applications" && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                {/* Applications list */}
+                <div className="lg:col-span-2 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-black text-stone-400 uppercase tracking-widest">Active Applications</h3>
+                    <Button
+                      onClick={() => setShowAddAppForm(!showAddAppForm)}
+                      className="text-[10px] font-black uppercase tracking-widest py-1.5 px-3 bg-primary text-white rounded-xl shadow-md"
+                    >
+                      <Plus className="w-3.5 h-3.5 mr-1" /> Add Job
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {applications.length > 0 ? (
+                      applications.map(app => (
+                        <div
+                          key={app.id}
+                          className="p-5 bg-white dark:bg-stone-900 border border-black/5 dark:border-white/5 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-stone-200 dark:hover:border-stone-800 transition-all"
+                        >
+                          <div>
+                            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">{app.company}</span>
+                            <h4 className="font-bold text-stone-900 dark:text-white text-base leading-tight mt-0.5">{app.role}</h4>
+                            <div className="flex items-center gap-4 text-xs font-semibold text-stone-500 dark:text-stone-400 mt-2">
+                              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Added {app.date}</span>
+                              {app.notes && <span className="italic line-clamp-1 max-w-[280px]">"{app.notes}"</span>}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3 shrink-0">
+                            {/* Status selectors */}
+                            <select
+                              value={app.status}
+                              onChange={(e) => handleUpdateAppStatus(app.id, e.target.value as any)}
+                              className={`p-2 border rounded-xl text-xs font-bold ${
+                                app.status === "offer"
+                                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                  : app.status === "interviewing"
+                                  ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                                  : app.status === "rejected"
+                                  ? "bg-rose-500/10 text-rose-500 border-rose-500/20"
+                                  : "bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border-stone-200 dark:border-stone-800"
+                              }`}
+                            >
+                              <option value="applied">Applied</option>
+                              <option value="interviewing">Interviewing</option>
+                              <option value="offer">Offer Received</option>
+                              <option value="rejected">Rejected</option>
+                            </select>
+
+                            <button
+                              onClick={() => handleDeleteApplication(app.id)}
+                              className="p-2 text-stone-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-12 text-center bg-white dark:bg-stone-900 border border-black/5 dark:border-white/5 rounded-3xl space-y-4">
+                        <FileText className="w-10 h-10 text-stone-300 mx-auto" />
+                        <h4 className="text-sm font-bold text-stone-900 dark:text-white">No active applications tracked</h4>
+                        <p className="text-xs text-stone-400 max-w-xs mx-auto">Click "Add Job" to record external recruiter cycles or direct apply processes.</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="glass p-1.5 rounded-[2rem] border border-black/5 dark:border-white/5 backdrop-blur-3xl shadow-2xl">
-                    <TabsList className="bg-transparent gap-2 h-14">
-                        <TabsTrigger value="explorer" className="rounded-2xl px-8 gap-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-500 font-bold">
-                            <LayoutGrid className="w-5 h-5" /> Explorer
-                        </TabsTrigger>
-                        <TabsTrigger value="submit" className="rounded-2xl px-8 gap-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-500 font-bold">
-                            <Plus className="w-5 h-5" /> Propose
-                        </TabsTrigger>
-                        <TabsTrigger value="admin" className="rounded-2xl px-8 gap-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-500 font-bold relative">
-                            <ShieldCheck className="w-5 h-5" /> Admin
-                            {pendingCount > 0 && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-foreground text-background text-xs flex items-center justify-center rounded-full font-black shadow-lg">
-                                    {pendingCount}
-                                </span>
-                            )}
-                        </TabsTrigger>
-                    </TabsList>
-                </Tabs>
-            </div>
+                {/* Add Application Form Panel */}
+                <div className="lg:col-span-1">
+                  <AnimatePresence>
+                    {(showAddAppForm || applications.length === 0) && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="bg-white dark:bg-stone-900 border border-black/5 dark:border-white/5 rounded-3xl p-6 shadow-sm space-y-4"
+                      >
+                        <h4 className="text-xs font-black uppercase tracking-widest text-stone-900 dark:text-white pb-3 border-b border-stone-100 dark:border-stone-800">
+                          Track New Application
+                        </h4>
 
-            {/* ── Tab Content ────────────────────────────────────── */}
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={activeTab}
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.02 }}
-                    transition={{ type: "spring", damping: 30, stiffness: 200 }}
-                >
-                    {/* ── EXPLORER TAB ────────────────────────────── */}
-                    {activeTab === "explorer" && (
-                        <div className="space-y-8">
-                            
-                            {/* Category Filter Tabs + Search Controls */}
-                            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6">
-                                <Tabs 
-                                    value={selectedCategory} 
-                                    onValueChange={(v) => setSelectedCategory(v as any)} 
-                                    className="bg-foreground/5 p-1 rounded-2xl border border-foreground/10 max-w-xl shadow-inner w-full lg:w-auto"
-                                >
-                                    <TabsList className="bg-transparent gap-1 h-11 flex w-full">
-                                        <TabsTrigger value="all" className="flex-1 rounded-xl px-5 py-2 font-bold text-xs uppercase tracking-wider data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">All</TabsTrigger>
-                                        <TabsTrigger value="hackathon" className="flex-1 rounded-xl px-5 py-2 font-bold text-xs uppercase tracking-wider data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Hackathons</TabsTrigger>
-                                        <TabsTrigger value="internship" className="flex-1 rounded-xl px-5 py-2 font-bold text-xs uppercase tracking-wider data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Internships</TabsTrigger>
-                                        <TabsTrigger value="job" className="flex-1 rounded-xl px-5 py-2 font-bold text-xs uppercase tracking-wider data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Jobs</TabsTrigger>
-                                    </TabsList>
-                                </Tabs>
+                        <form onSubmit={handleAddApplication} className="space-y-4">
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Company Name</label>
+                            <Input
+                              required
+                              value={appCompany}
+                              onChange={(e) => setAppCompany(e.target.value)}
+                              placeholder="e.g. Google"
+                              className="bg-stone-50 dark:bg-stone-800/40 border-stone-250 dark:border-stone-800 text-xs rounded-xl"
+                            />
+                          </div>
 
-                                <div className="flex items-center gap-3">
-                                    <SourceIndicator source={dataSource} />
-                                    
-                                    <Button
-                                        onClick={() => fetchArena(selectedCategory)}
-                                        variant="outline"
-                                        className="h-11 w-11 rounded-xl bg-card hover:bg-foreground/5 border border-foreground/10 transition-all active:scale-95 flex items-center justify-center shrink-0 cursor-pointer"
-                                        disabled={isLoading}
-                                    >
-                                        <RefreshCw className={`w-4 h-4 text-muted-foreground ${isLoading ? "animate-spin" : ""}`} />
-                                    </Button>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Job Title</label>
+                            <Input
+                              required
+                              value={appRole}
+                              onChange={(e) => setAppRole(e.target.value)}
+                              placeholder="e.g. Frontend Developer"
+                              className="bg-stone-50 dark:bg-stone-800/40 border-stone-250 dark:border-stone-800 text-xs rounded-xl"
+                            />
+                          </div>
 
-                                    <Button
-                                        onClick={() => setShowPrefs(!showPrefs)}
-                                        className={`h-11 px-5 rounded-xl border font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
-                                            showPrefs
-                                                ? "bg-primary text-primary-foreground border-primary"
-                                                : "bg-card hover:bg-foreground/5 border-foreground/10 text-foreground"
-                                        }`}
-                                    >
-                                        <SlidersHorizontal className="w-4 h-4" /> Preferences Settings
-                                    </Button>
-                                </div>
-                            </div>
-
-                            {/* Preference Wizard Expandable Panel */}
-                            <AnimatePresence>
-                                {showPrefs && (
-                                    <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: "auto", opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.4, ease: "easeInOut" }}
-                                        className="overflow-hidden"
-                                    >
-                                        <Card className="glass-premium border-primary/20 p-8 rounded-[2.5rem] space-y-6 relative">
-                                            <div className="absolute top-4 right-4">
-                                                <button
-                                                    onClick={() => setShowPrefs(false)}
-                                                    className="w-8 h-8 rounded-full hover:bg-foreground/5 flex items-center justify-center text-muted-foreground transition-all cursor-pointer"
-                                                >
-                                                    <XCircle className="w-5 h-5" />
-                                                </button>
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <h3 className="text-xl font-black tracking-tight flex items-center gap-2">
-                                                    <SlidersHorizontal className="w-5 h-5 text-primary" /> Personalized Match Settings
-                                                </h3>
-                                                <p className="text-xs text-muted-foreground">
-                                                    Nexus dynamically scores and matches opportunities based on these skills and roles.
-                                                </p>
-                                            </div>
-
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                                {/* Preferred Roles */}
-                                                <div className="space-y-3">
-                                                    <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-primary">Ideal Roles</span>
-                                                    <div className="flex flex-wrap gap-1.5">
-                                                        {PRESET_ROLES.map((role) => {
-                                                            const selected = preferences.preferredRoles.includes(role);
-                                                            return (
-                                                                <button
-                                                                    key={role}
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        const roles = selected
-                                                                            ? preferences.preferredRoles.filter(r => r !== role)
-                                                                            : [...preferences.preferredRoles, role];
-                                                                        setPreferences({ ...preferences, preferredRoles: roles });
-                                                                    }}
-                                                                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                                                                        selected
-                                                                            ? "bg-primary text-primary-foreground shadow-[0_0_12px_rgba(var(--primary),0.25)] scale-105"
-                                                                            : "bg-foreground/5 text-foreground/60 border border-foreground/10 hover:bg-foreground/10"
-                                                                    }`}
-                                                                >
-                                                                    {role}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-
-                                                {/* Tech Stack Skills */}
-                                                <div className="space-y-3">
-                                                    <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-primary">Core Skills</span>
-                                                    <div className="flex flex-wrap gap-1.5">
-                                                        {PRESET_SKILLS.map((skill) => {
-                                                            const selected = preferences.skills.includes(skill);
-                                                            return (
-                                                                <button
-                                                                    key={skill}
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        const skills = selected
-                                                                            ? preferences.skills.filter(s => s !== skill)
-                                                                            : [...preferences.skills, skill];
-                                                                        setPreferences({ ...preferences, skills });
-                                                                    }}
-                                                                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                                                                        selected
-                                                                            ? "bg-primary text-primary-foreground shadow-[0_0_12px_rgba(var(--primary),0.25)] scale-105"
-                                                                            : "bg-foreground/5 text-foreground/60 border border-foreground/10 hover:bg-foreground/10"
-                                                                    }`}
-                                                                >
-                                                                    {skill}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-
-                                                {/* Target Location */}
-                                                <div className="space-y-3">
-                                                    <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-primary">Location Preference</span>
-                                                    <div className="flex flex-wrap gap-1.5">
-                                                        {PRESET_LOCATIONS.map((loc) => {
-                                                            const selected = preferences.location === loc;
-                                                            return (
-                                                                <button
-                                                                    key={loc}
-                                                                    type="button"
-                                                                    onClick={() => setPreferences({ ...preferences, location: loc })}
-                                                                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                                                                        selected
-                                                                            ? "bg-primary text-primary-foreground shadow-[0_0_12px_rgba(var(--primary),0.25)] scale-105"
-                                                                            : "bg-foreground/5 text-foreground/60 border border-foreground/10 hover:bg-foreground/10"
-                                                                    }`}
-                                                                >
-                                                                    {loc}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-
-                            {/* Search Bar */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="relative w-full z-10"
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Initial Status</label>
+                            <select
+                              value={appStatus}
+                              onChange={(e) => setAppStatus(e.target.value as any)}
+                              className="w-full p-2.5 bg-stone-50 dark:bg-stone-800/40 border border-stone-200 dark:border-stone-850 text-xs font-semibold rounded-xl text-stone-700 dark:text-stone-300"
                             >
-                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search by keywords, organizer, tags, location or role..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="h-14 pl-14 pr-6 bg-card border border-foreground/10 rounded-2xl text-base focus:border-primary/50 transition-all outline-none"
-                                />
-                            </motion.div>
+                              <option value="applied">Applied</option>
+                              <option value="interviewing">Interviewing</option>
+                              <option value="offer">Offer Received</option>
+                              <option value="rejected">Rejected</option>
+                            </select>
+                          </div>
 
-                            {/* Error State */}
-                            {error && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="glass-premium p-6 rounded-2xl border-amber-500/20 flex items-center gap-4"
-                                >
-                                    <WifiOff className="w-6 h-6 text-amber-500 shrink-0" />
-                                    <p className="text-amber-500/80 text-sm font-medium">{error}</p>
-                                </motion.div>
-                            )}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Notes & Logs</label>
+                            <textarea
+                              value={appNotes}
+                              onChange={(e) => setAppNotes(e.target.value)}
+                              placeholder="Key milestones, tech interview dates, or recruiter contact details..."
+                              className="w-full h-20 p-3 bg-stone-50 dark:bg-stone-800/40 border border-stone-200 dark:border-stone-850 text-xs rounded-xl font-medium text-stone-750 dark:text-stone-300 focus:outline-none"
+                            />
+                          </div>
 
-                            {/* Loading State */}
-                            {isLoading && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                                        <SkeletonCard key={i} />
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Opportunities Cards Feed */}
-                            {!isLoading && processedOpportunities.length > 0 && (
-                                <motion.div
-                                    layout
-                                    className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center w-full relative z-10"
-                                >
-                                    {processedOpportunities.map((hack, index) => (
-                                        <OpportunityCard
-                                            key={hack.id}
-                                            hack={hack}
-                                            index={index}
-                                            preferences={preferences}
-                                        />
-                                    ))}
-                                </motion.div>
-                            )}
-
-                            {/* Empty feed state */}
-                            {!isLoading && processedOpportunities.length === 0 && (
-                                <div className="h-60 flex flex-col items-center justify-center opacity-30 space-y-4">
-                                    <Search className="w-12 h-12" />
-                                    <p className="font-black uppercase tracking-widest text-sm text-center">No opportunities match search context</p>
-                                    <Button variant="ghost" onClick={() => setSearchQuery("")} className="text-primary text-xs cursor-pointer">
-                                        Clear Search Query
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
+                          <Button type="submit" className="w-full bg-primary text-white text-xs font-black uppercase tracking-widest py-4 rounded-xl shadow-md">
+                            Save Application Log
+                          </Button>
+                        </form>
+                      </motion.div>
                     )}
+                  </AnimatePresence>
+                </div>
 
-                    {/* ── PROPOSE TAB ─────────────────────────────── */}
-                    {activeTab === "submit" && (
-                        <div className="max-w-3xl mx-auto pb-20">
-                            <Card className="glass-premium border-black/5 dark:border-white/10 p-12 rounded-[3rem] shadow-2xl relative overflow-hidden group">
-                                <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/20 rounded-full blur-[80px] group-hover:bg-primary/30 transition-colors" />
-                                <CardHeader className="p-0 mb-10 space-y-6">
-                                    <div className="w-20 h-20 rounded-3xl bg-primary/20 flex items-center justify-center border border-primary/40 shadow-glow animate-pulse-slow">
-                                        <Plus className="w-10 h-10 text-primary" />
-                                    </div>
-                                    <div>
-                                        <CardTitle className="text-4xl font-black tracking-tighter">
-                                            Propose a <span className="text-primary text-glow">Hackathon</span>
-                                        </CardTitle>
-                                        <CardDescription className="text-lg text-muted-foreground">Submit a hackathon setup to Nexus nodes.</CardDescription>
-                                    </div>
-                                </CardHeader>
-                                <form onSubmit={handleSubmit} className="space-y-8">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div className="space-y-3">
-                                            <label className="text-xs font-black uppercase tracking-[0.2em] text-primary ml-1">Event Title</label>
-                                            <Input
-                                                placeholder="Nexus Dev Summit"
-                                                className="h-16 bg-card border border-foreground/10 rounded-2xl px-6 text-lg focus:border-primary/50 transition-all outline-none"
-                                                value={newHackathon.title}
-                                                onChange={(e) => setNewHackathon({ ...newHackathon, title: e.target.value })}
-                                                required
-                                            />
-                                        </div>
-                                        <div className="space-y-3">
-                                            <label className="text-xs font-black uppercase tracking-[0.2em] text-primary ml-1">Category</label>
-                                            <Input
-                                                placeholder="Open Source"
-                                                className="h-16 bg-card border border-foreground/10 rounded-2xl px-6 text-lg focus:border-primary/50 transition-all outline-none"
-                                                value={newHackathon.category}
-                                                onChange={(e) => setNewHackathon({ ...newHackathon, category: e.target.value })}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div className="space-y-3">
-                                            <label className="text-xs font-black uppercase tracking-[0.2em] text-primary ml-1">Timeline</label>
-                                            <Input
-                                                placeholder="July 20-22"
-                                                className="h-16 bg-card border border-foreground/10 rounded-2xl px-6 text-lg focus:border-primary/50 transition-all outline-none"
-                                                value={newHackathon.date}
-                                                onChange={(e) => setNewHackathon({ ...newHackathon, date: e.target.value })}
-                                                required
-                                            />
-                                        </div>
-                                        <div className="space-y-3">
-                                            <label className="text-xs font-black uppercase tracking-[0.2em] text-primary ml-1">Prize Pool</label>
-                                            <Input
-                                                placeholder="$10,000"
-                                                className="h-16 bg-card border border-foreground/10 rounded-2xl px-6 text-lg focus:border-primary/50 transition-all outline-none"
-                                                value={newHackathon.prize}
-                                                onChange={(e) => setNewHackathon({ ...newHackathon, prize: e.target.value })}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-3">
-                                        <label className="text-xs font-black uppercase tracking-[0.2em] text-primary ml-1">Poster Image URL</label>
-                                        <Input
-                                            placeholder="https://images.unsplash.com/..."
-                                            className="h-16 bg-card border border-foreground/10 rounded-2xl px-6 text-lg focus:border-primary/50 transition-all outline-none"
-                                            value={newHackathon.image}
-                                            onChange={(e) => setNewHackathon({ ...newHackathon, image: e.target.value })}
-                                        />
-                                        <p className="text-[10px] text-muted-foreground opacity-60 italic mt-2 ml-1 items-center flex gap-2">
-                                            <Sparkles className="w-3 h-3 text-primary" /> Protip: High-resolution posters get 2x more dev signups.
-                                        </p>
-                                    </div>
-                                    <Button
-                                        disabled={isSubmitting}
-                                        className="w-full h-20 bg-primary hover:bg-foreground hover:text-background text-primary-foreground text-xl font-black rounded-3xl gap-4 shadow-2xl active:scale-[0.98] transition-all duration-500 group/submit cursor-pointer"
-                                    >
-                                        {isSubmitting ? (
-                                            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
-                                                <Sparkles className="w-6 h-6" />
-                                            </motion.div>
-                                        ) : (
-                                            <Send className="w-6 h-6 group-hover/submit:translate-x-2 group-hover/submit:-translate-y-2 transition-transform" />
-                                        )}
-                                        {isSubmitting ? "BROADCASTING TO NETWORK..." : "SUBMIT PROPOSAL"}
-                                    </Button>
-                                </form>
-                            </Card>
-                        </div>
-                    )}
+              </div>
+            )}
 
-                    {/* ── ADMIN TAB ───────────────────────────────── */}
-                    {activeTab === "admin" && (
-                        <div className="space-y-12 max-w-5xl mx-auto pb-20">
-                            <div className="flex items-center gap-6 p-8 glass-premium border-primary/20">
-                                <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/40 shadow-glow">
-                                    <ShieldCheck className="w-8 h-8 text-primary" />
-                                </div>
-                                <div>
-                                    <h2 className="text-3xl font-black tracking-tight">
-                                        Security & <span className="text-primary text-glow">Governance</span>
-                                    </h2>
-                                    <p className="text-muted-foreground font-mono text-xs uppercase tracking-widest mt-1">
-                                        Reviewing {pendingCount} pending requests
-                                    </p>
-                                </div>
-                            </div>
+            {/* 4. SKILL DNA ANALYTICS */}
+            {activeTab === "skills" && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                {/* Chart Block */}
+                <Card className="lg:col-span-2 bg-white dark:bg-stone-900 border-black/5 dark:border-white/5 rounded-3xl p-6 shadow-sm">
+                  <CardHeader className="p-0 pb-4">
+                    <CardTitle className="text-base font-black text-stone-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                      <Award className="w-5 h-5 text-primary" /> Skill Profile vs Market Demand
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      Radar map comparing your scanned capabilities against aggregate hiring requirements.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-0 h-[360px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={SKILL_MARKET_DATA}>
+                        <PolarGrid stroke="#e5e7eb" />
+                        <PolarAngleAxis dataKey="subject" tick={{ fill: "#6b7280", fontSize: 10, fontWeight: "bold" }} />
+                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "#9ca3af", fontSize: 8 }} />
+                        <Radar name="Your Skill DNA" dataKey="user" stroke="#6366f1" fill="#6366f1" fillOpacity={0.25} />
+                        <Radar name="Market Requirement" dataKey="market" stroke="#9ca3af" fill="#9ca3af" fillOpacity={0.1} />
+                        <Tooltip />
+                        <Legend wrapperStyle={{ fontSize: 10, fontWeight: "bold" }} />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
 
-                            {pendingCount === 0 ? (
-                                <div className="h-80 flex flex-col items-center justify-center border-2 border-dashed border-foreground/10 rounded-[3rem] opacity-30 space-y-6">
-                                    <CheckCircle2 className="w-16 h-16 text-emerald-500" />
-                                    <p className="text-xl font-black uppercase tracking-widest">Protocol Synchronized</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-6">
-                                    {localHackathons
-                                        .filter((h) => h.status === "pending")
-                                        .map((node) => (
-                                            <motion.div
-                                                layout
-                                                key={node.id}
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                className="glass-premium p-8 rounded-[2.5rem] border-black/5 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 group hover:border-primary/40 transition-all duration-500"
-                                            >
-                                                <div className="flex items-center gap-8 w-full md:w-auto">
-                                                    <div className="w-32 h-20 rounded-2xl overflow-hidden border border-foreground/10 shrink-0 shadow-2xl relative group-hover:scale-105 transition-transform duration-500">
-                                                        {node.image ? (
-                                                            <img src={node.image} alt={node.title} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <div className="w-full h-full bg-foreground/5 flex items-center justify-center">
-                                                                <Trophy className="w-8 h-8 text-primary/40" />
-                                                            </div>
-                                                        )}
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent opacity-40" />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <h3 className="text-2xl font-black tracking-tight leading-none">{node.title}</h3>
-                                                        <div className="flex flex-wrap gap-6 text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">
-                                                            <span className="flex items-center gap-2">
-                                                                <Calendar className="w-3.5 h-3.5 text-primary" /> {node.date}
-                                                            </span>
-                                                            <span className="flex items-center gap-2 font-bold text-emerald-600 dark:text-emerald-400">
-                                                                <Trophy className="w-3.5 h-3.5" /> {node.prize}
-                                                            </span>
-                                                            <Badge variant="outline" className="bg-foreground/5 border-foreground/10 text-[9px] text-muted-foreground">
-                                                                {node.category}
-                                                            </Badge>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                {/* Analytical Breakdown */}
+                <div className="space-y-6">
+                  <div className="bg-white dark:bg-stone-900 border border-black/5 dark:border-white/5 rounded-3xl p-6 shadow-sm space-y-4">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-stone-400">Skill Gap Diagnosis</h4>
+                    
+                    <div className="space-y-4 text-xs font-semibold">
+                      <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl space-y-1">
+                        <h5 className="font-extrabold flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> High-Density Mastery</h5>
+                        <p className="text-[11px] leading-relaxed">
+                          Your **React** and **Tailwind CSS** levels exceed 90% of market benchmarks, putting you in the top tier for client-side architectures.
+                        </p>
+                      </div>
 
-                                                <div className="flex gap-4 w-full md:w-auto">
-                                                    <Button
-                                                        onClick={() => handleReject(node.id)}
-                                                        variant="ghost"
-                                                        className="h-16 px-8 rounded-2xl hover:bg-destructive/10 hover:text-destructive gap-2 flex-1 md:flex-none border border-foreground/10 hover:border-destructive/20 font-black uppercase text-xs tracking-widest transition-all active:scale-95 cursor-pointer text-foreground"
-                                                    >
-                                                        <XCircle className="w-5 h-5" /> REJECT
-                                                    </Button>
-                                                    <Button
-                                                        onClick={() => handleApprove(node.id)}
-                                                        className="h-16 px-10 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black flex items-center justify-center gap-3 flex-1 md:flex-none shadow-lg active:scale-95 transition-all uppercase text-xs tracking-widest cursor-pointer"
-                                                    >
-                                                        <CheckCircle2 className="w-5 h-5" /> APPROVE REQUEST
-                                                    </Button>
-                                                </div>
-                                            </motion.div>
-                                        ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </motion.div>
-            </AnimatePresence>
-        </div>
-    );
+                      <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl space-y-1">
+                        <h5 className="font-extrabold flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5" /> Core Growth Focus</h5>
+                        <p className="text-[11px] leading-relaxed">
+                          Hiring indices show growing demand for **Go** and **AWS** platforms. Upgrading these skills will increase your matches by 35%.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* 5. SALARY INSIGHTS */}
+            {activeTab === "salary" && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                {/* Bar chart panel */}
+                <Card className="lg:col-span-2 bg-white dark:bg-stone-900 border-black/5 dark:border-white/5 rounded-3xl p-6 shadow-sm">
+                  <CardHeader className="p-0 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                      <CardTitle className="text-base font-black text-stone-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                        <DollarSign className="w-5 h-5 text-primary" /> Salary Range Insights
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        Median annual range for target positions by location (Lakhs INR / Thousands USD).
+                      </CardDescription>
+                    </div>
+
+                    <select
+                      value={selectedSalaryRole}
+                      onChange={(e) => setSelectedSalaryRole(e.target.value as any)}
+                      className="p-2 bg-stone-50 dark:bg-stone-800 border border-stone-250 dark:border-stone-850 text-xs font-bold rounded-xl text-stone-700 dark:text-stone-300 focus:outline-none"
+                    >
+                      <option value="Full Stack">Full Stack Dev</option>
+                      <option value="Frontend">Frontend Dev</option>
+                      <option value="Backend">Backend Dev</option>
+                      <option value="DevOps">DevOps Engineer</option>
+                    </select>
+                  </CardHeader>
+                  <CardContent className="p-0 h-[360px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={SALARY_INSIGHTS_DATA[selectedSalaryRole]} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis dataKey="location" tick={{ fill: "#6b7280", fontSize: 10, fontWeight: "bold" }} />
+                        <YAxis tick={{ fill: "#6b7280", fontSize: 10 }} />
+                        <Tooltip />
+                        <Legend wrapperStyle={{ fontSize: 10, fontWeight: "bold" }} />
+                        <Bar name="Lower Bracket" dataKey="min" fill="#9ca3af" radius={[4, 4, 0, 0]} />
+                        <Bar name="Median Bracket" dataKey="max" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                {/* Analytical breakdown */}
+                <div className="space-y-6">
+                  <div className="bg-white dark:bg-stone-900 border border-black/5 dark:border-white/5 rounded-3xl p-6 shadow-sm space-y-4">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-stone-400">Market Insights</h4>
+                    
+                    <div className="space-y-4 text-xs font-semibold text-stone-700 dark:text-stone-300">
+                      <div className="flex justify-between items-center py-2 border-b border-stone-100 dark:border-stone-800">
+                        <span>Role Selection</span>
+                        <span className="font-extrabold text-primary">{selectedSalaryRole}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-stone-100 dark:border-stone-800">
+                        <span>Top Paying Geo</span>
+                        <span>San Francisco</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-stone-100 dark:border-stone-800">
+                        <span>Remote Index</span>
+                        <span className="text-emerald-500 font-extrabold">Strong demand (42%)</span>
+                      </div>
+                      <p className="text-[11px] font-medium text-stone-500 dark:text-stone-400 leading-relaxed pt-2">
+                        💡 **Negotiation Tip**: When targeting Remote roles, reference global currency scales. Organizations frequently budget on mid-tier USD brackets ($60k–$100k) regardless of local boundaries.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Details View Modal */}
+      <JobDetailsModal
+        job={selectedJob}
+        isOpen={selectedJob !== null}
+        onClose={() => setSelectedJob(null)}
+        userSkills={currentUser?.skills || ["React", "TypeScript", "Node.js"]}
+        isSaved={selectedJob !== null && savedJobIds.includes(selectedJob.id)}
+        onSave={handleSaveToggle}
+      />
+    </div>
+  );
 }
