@@ -11,6 +11,7 @@ interface MemoryCacheEntry {
 const memoryCache = new Map<string, MemoryCacheEntry>();
 
 export function getCacheKey(filters: any): string {
+  // MUST include jobType so different filters get different cache entries
   const sortedFilters = Object.keys(filters)
     .sort()
     .reduce((acc: any, key) => {
@@ -21,10 +22,10 @@ export function getCacheKey(filters: any): string {
   const jsonStr = JSON.stringify(sortedFilters);
   
   if (typeof window === 'undefined') {
-    return Buffer.from(jsonStr).toString('base64').replace(/[^a-zA-Z0-9]/g, '_');
+    return Buffer.from(jsonStr).toString('base64').replace(/[^a-zA-Z0-9]/g, '_').slice(0, 100);
   } else {
     try {
-      return btoa(jsonStr).replace(/[^a-zA-Z0-9]/g, '_');
+      return btoa(jsonStr).replace(/[^a-zA-Z0-9]/g, '_').slice(0, 100);
     } catch (e) {
       return jsonStr.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 100);
     }
