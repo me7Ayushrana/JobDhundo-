@@ -66,6 +66,7 @@ export function Navbar() {
                             >
                                 Boost Workflow
                             </a>
+
                             
                             {isAuthenticated ? (
                                 <div className="flex items-center gap-5">
@@ -93,11 +94,13 @@ export function Navbar() {
                             </Link>
                         </div>
 
-                        {/* Mobile Actions: Hamburger only */}
+                        {/* Mobile Actions: Hamburger and Theme Switcher */}
                         <div className="flex md:hidden items-center gap-2 relative z-10">
+
+
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                className="p-2 text-stone-755 hover:text-primary transition-colors cursor-pointer rounded-full hover:bg-stone-100/80"
+                                className="p-2 text-stone-750 dark:text-stone-300 hover:text-primary transition-colors cursor-pointer rounded-full hover:bg-stone-100 dark:hover:bg-stone-800"
                                 aria-label="Toggle Mobile Menu"
                             >
                                 {isMobileMenuOpen ? <X className="w-4.5 h-4.5" /> : <Menu className="w-4.5 h-4.5" />}

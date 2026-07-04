@@ -244,7 +244,7 @@ function JobsFeedInner() {
           
           {/* Desktop Left Sidebar Filters */}
           <aside className="hidden lg:block lg:col-span-1 space-y-6">
-            <div className="bg-white border border-stone-200 rounded-[32px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] sticky top-28 space-y-6">
+            <div className="bg-white border border-stone-200/85 rounded-3xl p-6 shadow-sm sticky top-28 space-y-6">
               <div className="flex justify-between items-center pb-4 border-b border-stone-100">
                 <span className="text-xs font-black uppercase tracking-widest text-stone-900 flex items-center gap-2">
                   <Filter className="w-4.5 h-4.5" /> Filters
@@ -392,7 +392,7 @@ function JobsFeedInner() {
           {/* Right Main Panel: Feed cards */}
           <main className="lg:col-span-3 space-y-6">
             {/* Top Sort bar */}
-            <div className="bg-white border border-stone-200 rounded-2xl p-4 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="bg-white border border-stone-200/85 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
               <span className="text-xs text-stone-500 font-bold">
                 Showing {jobs.length} of {totalResults} results
               </span>
@@ -433,7 +433,7 @@ function JobsFeedInner() {
             {loading && jobs.length === 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {[...Array(6)].map((_, idx) => (
-                  <div key={idx} className="h-[330px] rounded-[24px] bg-stone-100/50 animate-pulse border border-stone-200" />
+                  <div key={idx} className="h-[330px] rounded-2xl bg-stone-200/50 animate-pulse border border-stone-200/85" />
                 ))}
               </div>
             ) : jobs.length > 0 ? (
@@ -450,7 +450,7 @@ function JobsFeedInner() {
                 ))}
               </div>
             ) : (
-              <div className="p-16 text-center bg-white border border-black/5 rounded-3xl space-y-4">
+              <div className="p-16 text-center bg-white border border-stone-200/85 rounded-3xl space-y-4">
                 <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center mx-auto text-stone-400">
                   <Search className="w-6 h-6" />
                 </div>
