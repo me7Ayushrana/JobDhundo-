@@ -1,11 +1,20 @@
 import { db } from "../firebase/config";
 import { UnifiedJob } from "./types";
-import { REGISTERED_CONNECTORS } from "./connectors";
-import { doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
+import { doc, setDoc, collection, getDocs } from "firebase/firestore";
 import fs from "fs";
 import path from "path";
 
-// Local database JSON path for local fallback persistence
+// Real API imports
+import { fetchAdzunaJobs } from "./aggregators/adzuna";
+import { fetchJSearchJobs } from "./aggregators/jsearch";
+import { fetchLoopCVJobs } from "./aggregators/loopcv";
+import { fetchRemoteOKJobs } from "./aggregators/remoteok";
+import { fetchJobicyJobs } from "./aggregators/jobicy";
+import { fetchHNJobs } from "./aggregators/hackernews";
+import { fetchGreenhouseJobs } from "./aggregators/greenhouse";
+import { fetchLeverJobs } from "./aggregators/lever";
+import { fetchAshbyJobs } from "./aggregators/ashby";
+
 const LOCAL_DB_PATH = path.join(process.cwd(), "src/lib/jobs/synced_database.json");
 
 /**
@@ -51,10 +60,9 @@ export async function loadAllJobsFromDb(): Promise<UnifiedJob[]> {
 }
 
 /**
- * Saves the unified jobs collection to the active database.
+ * Saves a unified job to Firestore if configured.
  */
 export async function saveJobToDb(job: UnifiedJob): Promise<void> {
-  // 1. Save to Firestore if active
   if (db) {
     try {
       const docRef = doc(db, "jobs", job.id);
@@ -64,19 +72,19 @@ export async function saveJobToDb(job: UnifiedJob): Promise<void> {
       console.error(`[SyncManager] Firestore write failed for ${job.id}:`, e);
     }
   }
-
-  // File system writes are handled in batch for the local JSON database to prevent concurrent write corruptions.
 }
 
+/**
+ * Persists the unified index to the local JSON database cache backup.
+ */
 export async function saveAllJobsToJsonDb(jobs: UnifiedJob[]): Promise<void> {
   try {
-    // Ensure parent directory exists
     const dir = path.dirname(LOCAL_DB_PATH);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
     fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(jobs, null, 2), "utf-8");
-    console.log(`[SyncManager] Local JSON Database updated successfully with ${jobs.length} jobs.`);
+    console.log(`[SyncManager] Local JSON Database updated with ${jobs.length} real jobs.`);
   } catch (err) {
     console.error("[SyncManager] Failed to write local JSON database:", err);
   }
@@ -84,69 +92,97 @@ export async function saveAllJobsToJsonDb(jobs: UnifiedJob[]): Promise<void> {
 
 export class SyncManager {
   /**
-   * Runs the sync pipeline across all 12 registered portals.
+   * Runs the sync pipeline in parallel across all 9 real live sources.
    */
-  static async runSync(query: string = "software developer", location: string = "India"): Promise<{
+  static async runSync(query: string = "software engineer", location: string = "India"): Promise<{
     processed: number;
     added: number;
     merged: number;
     removed: number;
+    sourceBreakdown: Record<string, number>;
     logs: string[];
   }> {
     const logs: string[] = [];
     logs.push(`[${new Date().toISOString()}] Launching Job Dhundo! Sync Pipeline...`);
-    logs.push(`Query: "${query}" | Location: "${location}"`);
+    logs.push(`Parameters - Query: "${query}" | Location: "${location}"`);
 
     // Load current database index
     const existingJobs = await loadAllJobsFromDb();
     const jobsMap = new Map<string, UnifiedJob>();
     existingJobs.forEach((job) => {
-      jobsMap.set(job.id, job);
+      // Use clean dedupe hash key
+      const key = generateDedupeHash(job.company, job.title, job.location);
+      jobsMap.set(key, job);
     });
 
     logs.push(`Loaded ${existingJobs.length} existing jobs from database.`);
 
+    logs.push("[SyncManager] Fetching from 9 live APIs in parallel...");
+    
+    // Trigger all live fetches in parallel
+    const results = await Promise.allSettled([
+      fetchAdzunaJobs(query, location, 1),
+      fetchJSearchJobs(query, location, 1),
+      fetchLoopCVJobs(query, location, 15),
+      fetchRemoteOKJobs(query),
+      fetchJobicyJobs(50, undefined, undefined, query),
+      fetchHNJobs(),
+      fetchGreenhouseJobs(),
+      fetchLeverJobs(),
+      fetchAshbyJobs()
+    ]);
+
+    const sources = [
+      "adzuna",
+      "jsearch",
+      "loopcv",
+      "remoteok",
+      "jobicy",
+      "hackernews",
+      "greenhouse",
+      "lever",
+      "ashby"
+    ];
+
+    let processedCount = 0;
     let addedCount = 0;
     let mergedCount = 0;
-    let processedCount = 0;
+    const sourceStats: Record<string, number> = {};
 
-    // Iterate through all 12 connectors
-    for (const connector of REGISTERED_CONNECTORS) {
-      try {
-        logs.push(`[Connector: ${connector.name}] Fetching listings...`);
-        const fetchedJobs = await connector.fetchJobs(query, location);
-        logs.push(`[Connector: ${connector.name}] Discovered ${fetchedJobs.length} potential opportunities.`);
+    results.forEach((result, index) => {
+      const sourceName = sources[index];
+      sourceStats[sourceName] = 0;
 
-        for (const rawJob of fetchedJobs) {
+      if (result.status === "fulfilled") {
+        const jobs = result.value || [];
+        sourceStats[sourceName] = jobs.length;
+        logs.push(`✅ [API: ${sourceName}] Successfully aggregated ${jobs.length} jobs.`);
+
+        for (const rawJob of jobs) {
           processedCount++;
 
           // 1. Validation Logic
           if (!rawJob.title || !rawJob.company || !rawJob.applyUrl) {
-            logs.push(`⚠️ [Validation] Skipped invalid job from ${connector.name}: Missing Title, Company, or Apply Link.`);
             continue;
           }
 
-          // 2. Create Unique Deduplication Hash
           const hashId = generateDedupeHash(rawJob.company, rawJob.title, rawJob.location);
-          
+
           if (jobsMap.has(hashId)) {
-            // DUPLICATE DETECTED! Run intelligent merge routine.
+            // DUPLICATE DETECTED! Merge sources & urls
             const existing = jobsMap.get(hashId)!;
-            
-            // Merge alternate URL if it's new
+
             const altUrls = existing.alternateUrls || [];
             if (rawJob.applyUrl && existing.applyUrl !== rawJob.applyUrl && !altUrls.includes(rawJob.applyUrl)) {
               altUrls.push(rawJob.applyUrl);
             }
 
-            // Merge alternate sources
             const altSources = existing.alternateSources || [];
-            const sourceAttr = rawJob.sourceAttribution || `via ${connector.name}`;
+            const sourceAttr = rawJob.sourceAttribution || `via ${sourceName}`;
             if (!altSources.includes(sourceAttr) && existing.sourceAttribution !== sourceAttr) {
               altSources.push(sourceAttr);
             }
 
-            // Update parameters
             const mergedJob: UnifiedJob = {
               ...existing,
               alternateUrls: altUrls,
@@ -157,12 +193,12 @@ export class SyncManager {
             jobsMap.set(hashId, mergedJob);
             mergedCount++;
           } else {
-            // NEW JOB! Create fresh database entry
+            // NEW JOB! Create fresh entry
             const newJob: UnifiedJob = {
               ...rawJob,
               id: hashId,
               alternateUrls: [rawJob.applyUrl],
-              alternateSources: [rawJob.sourceAttribution || `via ${connector.name}`],
+              alternateSources: [rawJob.sourceAttribution || `via ${sourceName}`],
               lastUpdated: new Date().toISOString(),
               postedDate: rawJob.postedDate || new Date().toISOString()
             };
@@ -171,14 +207,14 @@ export class SyncManager {
             addedCount++;
           }
         }
-      } catch (err: any) {
-        logs.push(`❌ [Connector: ${connector.name}] Failed: ${err.message || err}`);
+      } else {
+        logs.push(`❌ [API: ${sourceName}] Failed to fetch: ${result.reason?.message || result.reason}`);
       }
-    }
+    });
 
-    // 3. Clean up expired / stale listings
+    // Clean up expired listings older than 30 days
     const now = Date.now();
-    const staleLimit = 30 * 24 * 60 * 60 * 1000; // 30 days
+    const staleLimit = 30 * 24 * 60 * 60 * 1000;
     let removedCount = 0;
 
     const allMergedList = Array.from(jobsMap.values());
@@ -187,30 +223,31 @@ export class SyncManager {
       const isExpired = age > staleLimit;
       if (isExpired) {
         removedCount++;
-        logs.push(`🗑️ [Expiry] Removed stale job: "${job.title}" at "${job.company}" (older than 30 days)`);
+        logs.push(`🗑️ [Expiry] Removed stale job: "${job.title}" at "${job.company}"`);
         return false;
       }
       return true;
     });
 
-    // 4. Save updates back to active database
+    // Save to Firestore
     if (db) {
-      logs.push(`[Database] Syncing ${finalActiveList.length} jobs to Cloud Firestore...`);
+      logs.push(`[Database] Syncing ${finalActiveList.length} unique jobs to Cloud Firestore...`);
       for (const job of finalActiveList) {
         await saveJobToDb(job);
       }
     }
 
-    // Always update the JSON backup database file for safety and local setups
+    // Update local cached database backup
     await saveAllJobsToJsonDb(finalActiveList);
 
-    logs.push(`[Pipeline Success] Sync completed: Processed ${processedCount}, Added ${addedCount}, Merged ${mergedCount}, Expired ${removedCount}.`);
-    
+    logs.push(`[Pipeline Success] Sync complete: Processed ${processedCount}, Added ${addedCount}, Merged ${mergedCount}, Expired ${removedCount}.`);
+
     return {
       processed: processedCount,
       added: addedCount,
       merged: mergedCount,
       removed: removedCount,
+      sourceBreakdown: sourceStats,
       logs
     };
   }

@@ -191,7 +191,7 @@ export function normalizeJobs(rawJobs: any[], source: UnifiedJob["source"]): Uni
         skills = extractSkills(title, description);
       }
       experienceLevel = normalizeExperience(title, description);
-    } else if (source === "internshala" || source === "naukri") {
+    } else {
       id = item.id || id;
       title = item.title || "";
       company = item.company || "";
@@ -201,7 +201,7 @@ export function normalizeJobs(rawJobs: any[], source: UnifiedJob["source"]): Uni
       experienceLevel = item.experienceLevel || "mid";
       salaryMin = item.salaryMin;
       salaryMax = item.salaryMax;
-      salaryCurrency = item.salaryCurrency || "INR";
+      salaryCurrency = item.salaryCurrency || "USD";
       salaryPeriod = item.salaryPeriod || "yearly";
       description = item.description || "";
       requirements = item.requirements || [];

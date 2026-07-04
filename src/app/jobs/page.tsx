@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, MapPin, Briefcase, DollarSign, Calendar, SlidersHorizontal, ArrowUpDown, ChevronDown, Check, X, RefreshCw, Sparkles, Filter } from "lucide-react";
+import { Search, MapPin, Briefcase, DollarSign, Calendar, SlidersHorizontal, ArrowUpDown, ChevronDown, Check, X, RefreshCw, Sparkles, Filter, AlertCircle } from "lucide-react";
 import { useSocial } from "@/components/providers/social-context";
 import { UnifiedJob, JobSearchResult, JobSearchFilters } from "@/lib/jobs/types";
 import { calculateMatchScore } from "@/lib/jobs/match-scorer";
@@ -43,6 +43,7 @@ function JobsFeedInner() {
   const [totalResults, setTotalResults] = useState(0);
   const [sourceBreakdown, setSourceBreakdown] = useState<Record<string, number>>({});
   const [isStale, setIsStale] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   // Modal Detail View State
   const [selectedJob, setSelectedJob] = useState<UnifiedJob | null>(null);
@@ -138,6 +139,7 @@ function JobsFeedInner() {
       setTotalResults(data.totalResults);
       setSourceBreakdown(data.sourceBreakdown || {});
       setIsStale(!!(data as any).warning);
+      setIsDemoMode(!!data.isDemoMode);
     } catch (e) {
       console.error(e);
     } finally {
@@ -222,6 +224,18 @@ function JobsFeedInner() {
           <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-2xl text-xs font-bold flex items-center justify-between">
             <span>⚠️ API rate limits hit. Serving cached offline results.</span>
             <Button variant="ghost" size="sm" onClick={() => fetchJobsData(1, false)} className="text-amber-500 hover:bg-amber-500/15 text-[10px] font-black uppercase">Retry</Button>
+          </div>
+        )}
+
+        {isDemoMode && (
+          <div className="bg-amber-50 border border-amber-250 rounded-2xl p-4 mb-6 flex flex-col gap-1 shadow-sm text-left">
+            <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
+              <AlertCircle className="w-4.5 h-4.5 text-amber-600 shrink-0" />
+              <span>Demo Mode Active</span>
+            </div>
+            <p className="text-xs text-amber-700 font-semibold leading-relaxed">
+              Showing sample listings. Configure API keys in environment variables for live job feeds from 50+ real sources.
+            </p>
           </div>
         )}
 

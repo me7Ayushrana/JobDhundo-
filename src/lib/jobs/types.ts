@@ -47,4 +47,5 @@ export interface JobSearchResult {
   sourceBreakdown: Record<string, number>; // {"adzuna": 45, "loopcv": 23}
   cached: boolean;
   fetchedAt: string;
+  isDemoMode?: boolean;
 }

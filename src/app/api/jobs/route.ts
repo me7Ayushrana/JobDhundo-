@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { loadAllJobsFromDb } from "@/lib/jobs/sync-manager";
-import { JobSearchResult } from "@/lib/jobs/types";
+import { JobSearchResult, UnifiedJob } from "@/lib/jobs/types";
+import { HIGH_FIDELITY_FALLBACK_JOBS } from "@/lib/jobs/mock-data";
+
+// Live APIs
+import { fetchAdzunaJobs } from "@/lib/jobs/aggregators/adzuna";
+import { fetchRemoteOKJobs } from "@/lib/jobs/aggregators/remoteok";
+import { fetchJobicyJobs } from "@/lib/jobs/aggregators/jobicy";
+import { fetchGreenhouseJobs } from "@/lib/jobs/aggregators/greenhouse";
+import { fetchLeverJobs } from "@/lib/jobs/aggregators/lever";
+import { fetchAshbyJobs } from "@/lib/jobs/aggregators/ashby";
 
 export async function GET(req: NextRequest) {
   try {
@@ -17,13 +26,44 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const perPage = parseInt(searchParams.get("perPage") || "10", 10);
 
-    // Load unified consolidated listings directly from centralized database (Firestore or Local JSON)
-    const allDbJobs = await loadAllJobsFromDb();
+    // 1. Try cache (Firestore or local database JSON) first
+    let jobsList = await loadAllJobsFromDb();
+    let isCached = jobsList.length > 0;
 
-    // Apply filters
-    let filteredJobs = [...allDbJobs];
+    // 2. Fetch from real APIs in parallel if cache is empty
+    if (!isCached) {
+      console.log("[Jobs API] Cache empty. Performing live API search in parallel...");
+      const apiResults = await Promise.allSettled([
+        fetchAdzunaJobs(q || "software developer", location || "India", page),
+        fetchRemoteOKJobs(q || undefined),
+        fetchJobicyJobs(perPage, undefined, undefined, q || undefined),
+        fetchGreenhouseJobs(),
+        fetchLeverJobs(),
+        fetchAshbyJobs()
+      ]);
 
-    // 1. Text Search (Query Title, Company, Description, or Skills)
+      apiResults.forEach((res) => {
+        if (res.status === "fulfilled") {
+          jobsList.push(...(res.value || []));
+        }
+      });
+    }
+
+    // 3. Fallback to Demo Mode ONLY if all APIs return 0 results
+    const isDemoMode = jobsList.length === 0;
+    if (isDemoMode) {
+      console.log("[Jobs API] Zero real jobs found. Activating Demo Mode...");
+      jobsList = HIGH_FIDELITY_FALLBACK_JOBS.map((j) => ({
+        ...j,
+        source: "demo",
+        sourceAttribution: "Demo Data — Add API keys for live feeds"
+      }));
+    }
+
+    // Apply filter parameters
+    let filteredJobs = [...jobsList];
+
+    // 1. Query Search
     if (q.trim()) {
       const term = q.toLowerCase().trim();
       filteredJobs = filteredJobs.filter((job) => {
@@ -36,7 +76,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // 2. Location filter
+    // 2. Location
     if (location.trim()) {
       const locTerm = location.toLowerCase().trim();
       filteredJobs = filteredJobs.filter((job) => 
@@ -44,31 +84,31 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 3. Job Types filter
+    // 3. Job Types
     if (jobTypes.length > 0) {
       filteredJobs = filteredJobs.filter((job) => jobTypes.includes(job.jobType));
     }
 
-    // 4. Experience filter
+    // 4. Experience Level
     if (experience.length > 0) {
       filteredJobs = filteredJobs.filter((job) => experience.includes(job.experienceLevel));
     }
 
-    // 5. Remote filter
+    // 5. Remote Only
     if (remote) {
       filteredJobs = filteredJobs.filter((job) => 
         job.location.toLowerCase().includes("remote")
       );
     }
 
-    // 6. Skills filter
+    // 6. Skills match
     if (skills.length > 0) {
       filteredJobs = filteredJobs.filter((job) =>
         skills.some((s) => job.skills.map((js) => js.toLowerCase()).includes(s.toLowerCase()))
       );
     }
 
-    // 7. Salary Min/Max Filter
+    // 7. Salary bounds
     if (salaryMin !== undefined) {
       filteredJobs = filteredJobs.filter((job) => !job.salaryMin || job.salaryMin >= salaryMin);
     }
@@ -76,10 +116,10 @@ export async function GET(req: NextRequest) {
       filteredJobs = filteredJobs.filter((job) => !job.salaryMax || job.salaryMax <= salaryMax);
     }
 
-    // 8. Recency (Posted Within) Filter
+    // 8. Recency
     if (postedWithin !== "all") {
       const now = Date.now();
-      let limitMs = 30 * 24 * 60 * 60 * 1000; // default 30d
+      let limitMs = 30 * 24 * 60 * 60 * 1000;
       if (postedWithin === "24h") limitMs = 24 * 60 * 60 * 1000;
       if (postedWithin === "7d") limitMs = 7 * 24 * 60 * 60 * 1000;
 
@@ -88,16 +128,16 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Sort by postedDate descending (newest opportunities first)
+    // Sort by newest postings
     filteredJobs.sort((a, b) => new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime());
 
-    // Calculate source breakdowns dynamically
+    // Source breakdowns
     const sourceBreakdown: Record<string, number> = {};
     filteredJobs.forEach((job) => {
       sourceBreakdown[job.source] = (sourceBreakdown[job.source] || 0) + 1;
     });
 
-    // Paginate
+    // Pagination
     const totalResults = filteredJobs.length;
     const startIndex = (page - 1) * perPage;
     const paginatedJobs = filteredJobs.slice(startIndex, startIndex + perPage);
@@ -110,13 +150,14 @@ export async function GET(req: NextRequest) {
       perPage,
       hasMore,
       sourceBreakdown,
-      cached: false,
-      fetchedAt: new Date().toISOString()
+      cached: isCached,
+      fetchedAt: new Date().toISOString(),
+      isDemoMode
     };
 
     return NextResponse.json(result);
   } catch (error: any) {
-    console.error("[API GET Jobs] Centralized query failed:", error);
-    return NextResponse.json({ error: "Server error", details: error.message }, { status: 500 });
+    console.error("[API GET Jobs] Endpoint crash:", error);
+    return NextResponse.json({ error: "Server search error", details: error.message }, { status: 500 });
   }
 }
